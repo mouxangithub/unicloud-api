@@ -1,0 +1,11 @@
+{
+	"name": "api",
+	"version": "1.5.0",
+	"description": "统一云函数",
+	"main": "index.js",
+	"bugs": {
+		"email": "mouxan@163.com"
+	},
+	"author": "mouxan@163.com",
+	"license": "MIT"
+}

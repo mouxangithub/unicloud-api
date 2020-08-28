@@ -1,0 +1,31 @@
+{
+	"passwordSecret": "c9714774b3cca94cfcd984db7d96f0d5",
+	"tokenSecret": "663a6c7329fec4d9ec10214417122c80",
+	"dbname": "admin",
+	"tokenExpiresIn": 7200,
+	"app-plus": {
+		"tokenExpiresIn": 2592000,
+		"oauth" : {
+			"weixin" : {
+				"appid" : "weixin appid",
+				"appsecret" : "weixin appsecret"
+			}
+		}
+	},
+	"mp-weixin": {
+		"oauth" : {
+			"weixin" : {
+				"appid" : "weixin appid",
+				"appsecret" : "weixin appsecret"
+			}
+		}
+	},
+	"mp-alipay": {
+		"oauth" : {
+			"alipay" : {
+				"appid" : "alipay appid",
+				"privateKey" : "alipay privateKey"
+			}
+		}
+	}
+}
