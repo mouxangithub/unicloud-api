@@ -3,7 +3,6 @@
  * 此函数为Uni-id云函数
  * 使用方法详情观看官方文档： https://uniapp.dcloud.io/uniCloud/uni-id
  */
-
 function e(e) {
 	return e && "object" == typeof e && "default" in e ? e.default : e
 }
@@ -12,8 +11,8 @@ var t = e(require("crypto")),
 	n = e(require("path")),
 	o = e(require("buffer")),
 	i = e(require("stream")),
-	s = e(require("util")),
-	a = e(require("querystring"));
+	a = e(require("util")),
+	s = e(require("querystring"));
 class c extends Error {
 	constructor(e) {
 		super(e.message), this.errMsg = e.message || "", Object.defineProperties(this, {
@@ -31,41 +30,41 @@ class c extends Error {
 const u = Object.prototype.toString,
 	f = Object.prototype.hasOwnProperty;
 
-function p(e, t) {
+function d(e, t) {
 	return f.call(e, t)
 }
 
-function l(e) {
+function p(e) {
 	return "[object Object]" === u.call(e)
 }
 
-function d(e) {
+function l(e) {
 	return "function" == typeof e
 }
-const h = /_(\w)/g,
-	m = /[A-Z]/g;
+const m = /_(\w)/g,
+	h = /[A-Z]/g;
 
 function g(e) {
-	return e.replace(h, (e, t) => t ? t.toUpperCase() : "")
+	return e.replace(m, (e, t) => t ? t.toUpperCase() : "")
 }
 
 function y(e) {
-	return e.replace(m, e => "_" + e.toLowerCase())
+	return e.replace(h, e => "_" + e.toLowerCase())
 }
 
 function w(e, t) {
 	let r, n;
 	switch (t) {
 		case "snake2camel":
-			n = g, r = h;
+			n = g, r = m;
 			break;
 		case "camel2snake":
-			n = y, r = m
+			n = y, r = h
 	}
 	for (const o in e)
-		if (p(e, o) && r.test(o)) {
+		if (d(e, o) && r.test(o)) {
 			const r = n(o);
-			e[r] = e[o], delete e[o], l(e[r]) ? e[r] = w(e[r], t) : Array.isArray(e[r]) && (e[r] = e[r].map(e => w(e, t)))
+			e[r] = e[o], delete e[o], p(e[r]) ? e[r] = w(e[r], t) : Array.isArray(e[r]) && (e[r] = e[r].map(e => w(e, t)))
 		} return e
 }
 
@@ -77,7 +76,7 @@ function b(e) {
 	return w(e, "camel2snake")
 }
 
-function S(e) {
+function _(e) {
 	return function(e, t = "-") {
 		e = e || new Date;
 		const r = [];
@@ -91,7 +90,7 @@ function S(e) {
 	}(e)
 }
 
-function _() {
+function S() {
 	"development" === process.env.NODE_ENV && console.log(...arguments)
 }
 
@@ -107,18 +106,18 @@ function E(e = {}, t) {
 		for (const t in e) e[t] = new Set(e[t]);
 		n = Object.assign(n, e)
 	}
-	if (l(t))
+	if (p(t))
 		for (const o in t) {
 			const i = t[o];
-			d(i) && -1 === r.indexOf(o) ? e[o] = i(e) : "string" == typeof i && -1 === r.indexOf(o) && (e[o] = e[i], n.shouldDelete
+			l(i) && -1 === r.indexOf(o) ? e[o] = i(e) : "string" == typeof i && -1 === r.indexOf(o) && (e[o] = e[i], n.shouldDelete
 				.add(i))
-		} else d(t) && (e = t(e));
+		} else l(t) && (e = t(e));
 	if (n.shouldDelete)
 		for (const t of n.shouldDelete) delete e[t];
 	return t._post && (e = t._post(e)), e
 }
 
-function x(e, t) {
+function k(e, t) {
 	const r = new e(t);
 	return new Proxy(r, {
 		get: function(e, t) {
@@ -135,33 +134,70 @@ function x(e, t) {
 	})
 }
 
-var config = k();
-const j = uniCloud.database().collection(config.dbname);
+let O = {};
+try {
+	O = JSON.parse(r.readFileSync(n.resolve(__dirname, "../config/index.json")))
+} catch (e) {}
 
-function k() {
-	let e = {};
-	try {
-		e = JSON.parse(r.readFileSync(n.resolve(__dirname, "../config/index.json"))), Object.assign(e, e[__ctx__.PLATFORM])
-	} catch (e) {
-		throw new Error("请在公用模块uni-id内添加config.json配置必要参数")
-	}
-	return ["passwordSecret", "tokenSecret", "tokenExpiresIn"].forEach(t => {
-		if (!e || !e[t]) throw new Error("请在公用模块uni-id的config.json内添加配置项：" + t)
-	}), e
+var config = I()
+const x = uniCloud.database(),
+	j = x.collection(config.UserDB),
+	T = x.collection(config.VerifyDB);
+
+function I(e) {
+	const t = Object.assign(O, O[e || __ctx__.PLATFORM]) || {},
+		r = Object.assign({
+			bindTokenToDevice: !0
+		}, t);
+	return ["passwordSecret", "tokenSecret", "tokenExpiresIn", "passwordErrorLimit", "passwordErrorRetryTime"].forEach(e => {
+		if (!r || !r[e]) throw new Error("请在公用模块uni-id的config.json或init方法中内添加配置项：" + e)
+	}), r
 }
 
-function T(e) {
-	const r = k(),
+function C(e) {
+	let t, r, n = e - Date.now(),
+		o = "后";
+	n < 0 && (o = "前", n = -n);
+	const i = Math.floor(n / 1e3),
+		a = Math.floor(i / 60),
+		s = Math.floor(a / 60),
+		c = Math.floor(s / 24),
+		u = Math.floor(c / 30),
+		f = Math.floor(u / 12);
+	switch (!0) {
+		case f > 0:
+			t = f, r = "年";
+			break;
+		case u > 0:
+			t = u, r = "月";
+			break;
+		case c > 0:
+			t = c, r = "天";
+			break;
+		case s > 0:
+			t = s, r = "小时";
+			break;
+		case a > 0:
+			t = a, r = "分钟";
+			break;
+		default:
+			t = i, r = "秒"
+	}
+	return `${t}${r}${o}`
+}
+
+function A(e) {
+	const r = I(),
 		n = t.createHmac("sha1", r.passwordSecret.toString("ascii"));
 	return n.update(e), n.digest("hex")
 }
 
-function O(e, t) {
+function R(e, t) {
 	return e(t = {
 		exports: {}
 	}, t.exports), t.exports
 }
-var A = O((function(e, t) {
+var P = R((function(e, t) {
 		var r = o.Buffer;
 
 		function n(e, t) {
@@ -187,203 +223,203 @@ var A = O((function(e, t) {
 				return o.SlowBuffer(e)
 			}
 	})),
-	R = (A.Buffer, A.Buffer);
+	$ = (P.Buffer, P.Buffer);
 
-function P(e) {
-	if (this.buffer = null, this.writable = !0, this.readable = !0, !e) return this.buffer = R.alloc(0), this;
-	if ("function" == typeof e.pipe) return this.buffer = R.alloc(0), e.pipe(this), this;
+function N(e) {
+	if (this.buffer = null, this.writable = !0, this.readable = !0, !e) return this.buffer = $.alloc(0), this;
+	if ("function" == typeof e.pipe) return this.buffer = $.alloc(0), e.pipe(this), this;
 	if (e.length || "object" == typeof e) return this.buffer = e, this.writable = !1, process.nextTick(function() {
 		this.emit("end", e), this.readable = !1, this.emit("close")
 	}.bind(this)), this;
 	throw new TypeError("Unexpected data type (" + typeof e + ")")
 }
-s.inherits(P, i), P.prototype.write = function(e) {
-	this.buffer = R.concat([this.buffer, R.from(e)]), this.emit("data", e)
-}, P.prototype.end = function(e) {
+a.inherits(N, i), N.prototype.write = function(e) {
+	this.buffer = $.concat([this.buffer, $.from(e)]), this.emit("data", e)
+}, N.prototype.end = function(e) {
 	e && this.write(e), this.emit("end", e), this.emit("close"), this.writable = !1, this.readable = !1
 };
-var I = P,
-	$ = o.Buffer,
-	C = o.SlowBuffer,
-	N = B;
+var B = N,
+	M = o.Buffer,
+	D = o.SlowBuffer,
+	L = K;
 
-function B(e, t) {
-	if (!$.isBuffer(e) || !$.isBuffer(t)) return !1;
+function K(e, t) {
+	if (!M.isBuffer(e) || !M.isBuffer(t)) return !1;
 	if (e.length !== t.length) return !1;
 	for (var r = 0, n = 0; n < e.length; n++) r |= e[n] ^ t[n];
 	return 0 === r
 }
-B.install = function() {
-	$.prototype.equal = C.prototype.equal = function(e) {
-		return B(this, e)
+K.install = function() {
+	M.prototype.equal = D.prototype.equal = function(e) {
+		return K(this, e)
 	}
 };
-var D = $.prototype.equal,
-	M = C.prototype.equal;
+var V = M.prototype.equal,
+	q = D.prototype.equal;
 
-function V(e) {
+function U(e) {
 	return (e / 8 | 0) + (e % 8 == 0 ? 0 : 1)
 }
-B.restore = function() {
-	$.prototype.equal = D, C.prototype.equal = M
+K.restore = function() {
+	M.prototype.equal = V, D.prototype.equal = q
 };
-var q = {
-	ES256: V(256),
-	ES384: V(384),
-	ES512: V(521)
+var H = {
+	ES256: U(256),
+	ES384: U(384),
+	ES512: U(521)
 };
-var K = function(e) {
-		var t = q[e];
+var F = function(e) {
+		var t = H[e];
 		if (t) return t;
 		throw new Error('Unknown algorithm "' + e + '"')
 	},
-	L = A.Buffer;
+	J = P.Buffer;
 
-function H(e) {
-	if (L.isBuffer(e)) return e;
-	if ("string" == typeof e) return L.from(e, "base64");
+function G(e) {
+	if (J.isBuffer(e)) return e;
+	if ("string" == typeof e) return J.from(e, "base64");
 	throw new TypeError("ECDSA signature must be a Base64 string or a Buffer")
 }
 
-function U(e, t, r) {
+function z(e, t, r) {
 	for (var n = 0; t + n < r && 0 === e[t + n];) ++n;
 	return e[t + n] >= 128 && --n, n
 }
-var J = {
+var W = {
 		derToJose: function(e, t) {
-			e = H(e);
-			var r = K(t),
+			e = G(e);
+			var r = F(t),
 				n = r + 1,
 				o = e.length,
 				i = 0;
 			if (48 !== e[i++]) throw new Error('Could not find expected "seq"');
-			var s = e[i++];
-			if (129 === s && (s = e[i++]), o - i < s) throw new Error('"seq" specified length of "' + s + '", only "' + (o - i) +
+			var a = e[i++];
+			if (129 === a && (a = e[i++]), o - i < a) throw new Error('"seq" specified length of "' + a + '", only "' + (o - i) +
 				'" remaining');
 			if (2 !== e[i++]) throw new Error('Could not find expected "int" for "r"');
-			var a = e[i++];
-			if (o - i - 2 < a) throw new Error('"r" specified length of "' + a + '", only "' + (o - i - 2) + '" available');
-			if (n < a) throw new Error('"r" specified length of "' + a + '", max of "' + n + '" is acceptable');
+			var s = e[i++];
+			if (o - i - 2 < s) throw new Error('"r" specified length of "' + s + '", only "' + (o - i - 2) + '" available');
+			if (n < s) throw new Error('"r" specified length of "' + s + '", max of "' + n + '" is acceptable');
 			var c = i;
-			if (i += a, 2 !== e[i++]) throw new Error('Could not find expected "int" for "s"');
+			if (i += s, 2 !== e[i++]) throw new Error('Could not find expected "int" for "s"');
 			var u = e[i++];
 			if (o - i !== u) throw new Error('"s" specified length of "' + u + '", expected "' + (o - i) + '"');
 			if (n < u) throw new Error('"s" specified length of "' + u + '", max of "' + n + '" is acceptable');
 			var f = i;
 			if ((i += u) !== o) throw new Error('Expected to consume entire buffer, but "' + (o - i) + '" bytes remain');
-			var p = r - a,
-				l = r - u,
-				d = L.allocUnsafe(p + a + l + u);
-			for (i = 0; i < p; ++i) d[i] = 0;
-			e.copy(d, i, c + Math.max(-p, 0), c + a);
-			for (var h = i = r; i < h + l; ++i) d[i] = 0;
-			return e.copy(d, i, f + Math.max(-l, 0), f + u), d = (d = d.toString("base64")).replace(/=/g, "").replace(/\+/g,
+			var d = r - s,
+				p = r - u,
+				l = J.allocUnsafe(d + s + p + u);
+			for (i = 0; i < d; ++i) l[i] = 0;
+			e.copy(l, i, c + Math.max(-d, 0), c + s);
+			for (var m = i = r; i < m + p; ++i) l[i] = 0;
+			return e.copy(l, i, f + Math.max(-p, 0), f + u), l = (l = l.toString("base64")).replace(/=/g, "").replace(/\+/g,
 				"-").replace(/\//g, "_")
 		},
 		joseToDer: function(e, t) {
-			e = H(e);
-			var r = K(t),
+			e = G(e);
+			var r = F(t),
 				n = e.length;
 			if (n !== 2 * r) throw new TypeError('"' + t + '" signatures must be "' + 2 * r + '" bytes, saw "' + n + '"');
-			var o = U(e, 0, r),
-				i = U(e, r, e.length),
-				s = r - o,
-				a = r - i,
-				c = 2 + s + 1 + 1 + a,
+			var o = z(e, 0, r),
+				i = z(e, r, e.length),
+				a = r - o,
+				s = r - i,
+				c = 2 + a + 1 + 1 + s,
 				u = c < 128,
-				f = L.allocUnsafe((u ? 2 : 3) + c),
-				p = 0;
-			return f[p++] = 48, u ? f[p++] = c : (f[p++] = 129, f[p++] = 255 & c), f[p++] = 2, f[p++] = s, o < 0 ? (f[p++] = 0,
-					p += e.copy(f, p, 0, r)) : p += e.copy(f, p, o, r), f[p++] = 2, f[p++] = a, i < 0 ? (f[p++] = 0, e.copy(f, p, r)) :
-				e.copy(f, p, r + i), f
+				f = J.allocUnsafe((u ? 2 : 3) + c),
+				d = 0;
+			return f[d++] = 48, u ? f[d++] = c : (f[d++] = 129, f[d++] = 255 & c), f[d++] = 2, f[d++] = a, o < 0 ? (f[d++] = 0,
+					d += e.copy(f, d, 0, r)) : d += e.copy(f, d, o, r), f[d++] = 2, f[d++] = s, i < 0 ? (f[d++] = 0, e.copy(f, d, r)) :
+				e.copy(f, d, r + i), f
 		}
 	},
-	F = A.Buffer,
-	G = "secret must be a string or buffer",
-	z = "key must be a string or a buffer",
-	W = "function" == typeof t.createPublicKey;
+	Z = P.Buffer,
+	Y = "secret must be a string or buffer",
+	X = "key must be a string or a buffer",
+	Q = "function" == typeof t.createPublicKey;
 
-function Z(e) {
-	if (!F.isBuffer(e) && "string" != typeof e) {
-		if (!W) throw ee(z);
-		if ("object" != typeof e) throw ee(z);
-		if ("string" != typeof e.type) throw ee(z);
-		if ("string" != typeof e.asymmetricKeyType) throw ee(z);
-		if ("function" != typeof e.export) throw ee(z)
+function ee(e) {
+	if (!Z.isBuffer(e) && "string" != typeof e) {
+		if (!Q) throw oe(X);
+		if ("object" != typeof e) throw oe(X);
+		if ("string" != typeof e.type) throw oe(X);
+		if ("string" != typeof e.asymmetricKeyType) throw oe(X);
+		if ("function" != typeof e.export) throw oe(X)
 	}
 }
 
-function Y(e) {
-	if (!F.isBuffer(e) && "string" != typeof e && "object" != typeof e) throw ee(
+function te(e) {
+	if (!Z.isBuffer(e) && "string" != typeof e && "object" != typeof e) throw oe(
 		"key must be a string, a buffer or an object")
 }
 
-function X(e) {
+function re(e) {
 	return e.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_")
 }
 
-function Q(e) {
+function ne(e) {
 	var t = 4 - (e = e.toString()).length % 4;
 	if (4 !== t)
 		for (var r = 0; r < t; ++r) e += "=";
 	return e.replace(/\-/g, "+").replace(/_/g, "/")
 }
 
-function ee(e) {
+function oe(e) {
 	var t = [].slice.call(arguments, 1),
-		r = s.format.bind(s, e).apply(null, t);
+		r = a.format.bind(a, e).apply(null, t);
 	return new TypeError(r)
 }
 
-function te(e) {
+function ie(e) {
 	var t;
-	return t = e, F.isBuffer(t) || "string" == typeof t || (e = JSON.stringify(e)), e
+	return t = e, Z.isBuffer(t) || "string" == typeof t || (e = JSON.stringify(e)), e
 }
 
-function re(e) {
+function ae(e) {
 	return function(r, n) {
 		! function(e) {
-			if (!F.isBuffer(e)) {
+			if (!Z.isBuffer(e)) {
 				if ("string" == typeof e) return e;
-				if (!W) throw ee(G);
-				if ("object" != typeof e) throw ee(G);
-				if ("secret" !== e.type) throw ee(G);
-				if ("function" != typeof e.export) throw ee(G)
+				if (!Q) throw oe(Y);
+				if ("object" != typeof e) throw oe(Y);
+				if ("secret" !== e.type) throw oe(Y);
+				if ("function" != typeof e.export) throw oe(Y)
 			}
-		}(n), r = te(r);
+		}(n), r = ie(r);
 		var o = t.createHmac("sha" + e, n);
-		return X((o.update(r), o.digest("base64")))
+		return re((o.update(r), o.digest("base64")))
 	}
 }
 
-function ne(e) {
+function se(e) {
 	return function(t, r, n) {
-		var o = re(e)(t, n);
-		return N(F.from(r), F.from(o))
+		var o = ae(e)(t, n);
+		return L(Z.from(r), Z.from(o))
 	}
 }
 
-function oe(e) {
+function ce(e) {
 	return function(r, n) {
-		Y(n), r = te(r);
+		te(n), r = ie(r);
 		var o = t.createSign("RSA-SHA" + e);
-		return X((o.update(r), o.sign(n, "base64")))
+		return re((o.update(r), o.sign(n, "base64")))
 	}
 }
 
-function ie(e) {
+function ue(e) {
 	return function(r, n, o) {
-		Z(o), r = te(r), n = Q(n);
+		ee(o), r = ie(r), n = ne(n);
 		var i = t.createVerify("RSA-SHA" + e);
 		return i.update(r), i.verify(o, n, "base64")
 	}
 }
 
-function se(e) {
+function fe(e) {
 	return function(r, n) {
-		Y(n), r = te(r);
+		te(n), r = ie(r);
 		var o = t.createSign("RSA-SHA" + e);
-		return X((o.update(r), o.sign({
+		return re((o.update(r), o.sign({
 			key: n,
 			padding: t.constants.RSA_PKCS1_PSS_PADDING,
 			saltLength: t.constants.RSA_PSS_SALTLEN_DIGEST
@@ -391,9 +427,9 @@ function se(e) {
 	}
 }
 
-function ae(e) {
+function de(e) {
 	return function(r, n, o) {
-		Z(o), r = te(r), n = Q(n);
+		ee(o), r = ie(r), n = ne(n);
 		var i = t.createVerify("RSA-SHA" + e);
 		return i.update(r), i.verify({
 			key: o,
@@ -403,50 +439,50 @@ function ae(e) {
 	}
 }
 
-function ce(e) {
-	var t = oe(e);
+function pe(e) {
+	var t = ce(e);
 	return function() {
 		var r = t.apply(null, arguments);
-		return r = J.derToJose(r, "ES" + e)
+		return r = W.derToJose(r, "ES" + e)
 	}
 }
 
-function ue(e) {
-	var t = ie(e);
+function le(e) {
+	var t = ue(e);
 	return function(r, n, o) {
-		return n = J.joseToDer(n, "ES" + e).toString("base64"), t(r, n, o)
+		return n = W.joseToDer(n, "ES" + e).toString("base64"), t(r, n, o)
 	}
 }
 
-function fe() {
+function me() {
 	return function() {
 		return ""
 	}
 }
 
-function pe() {
+function he() {
 	return function(e, t) {
 		return "" === t
 	}
 }
-W && (z += " or a KeyObject", G += "or a KeyObject");
-var le = function(e) {
+Q && (X += " or a KeyObject", Y += "or a KeyObject");
+var ge = function(e) {
 		var t = {
-				hs: re,
-				rs: oe,
-				ps: se,
-				es: ce,
-				none: fe
+				hs: ae,
+				rs: ce,
+				ps: fe,
+				es: pe,
+				none: me
 			},
 			r = {
-				hs: ne,
-				rs: ie,
-				ps: ae,
-				es: ue,
-				none: pe
+				hs: se,
+				rs: ue,
+				ps: de,
+				es: le,
+				none: he
 			},
 			n = e.match(/^(RS|PS|ES|HS)(256|384|512)$|^(none)$/i);
-		if (!n) throw ee(
+		if (!n) throw oe(
 			'"%s" is not a valid algorithm.\n  Supported algorithms are:\n  "HS256", "HS384", "HS512", "RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512" and "none".',
 			e);
 		var o = (n[1] || n[3]).toLowerCase(),
@@ -456,45 +492,45 @@ var le = function(e) {
 			verify: r[o](i)
 		}
 	},
-	de = o.Buffer,
-	he = function(e) {
-		return "string" == typeof e ? e : "number" == typeof e || de.isBuffer(e) ? e.toString() : JSON.stringify(e)
+	ye = o.Buffer,
+	we = function(e) {
+		return "string" == typeof e ? e : "number" == typeof e || ye.isBuffer(e) ? e.toString() : JSON.stringify(e)
 	},
-	me = A.Buffer;
+	ve = P.Buffer;
 
-function ge(e, t) {
-	return me.from(e, t).toString("base64").replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_")
+function be(e, t) {
+	return ve.from(e, t).toString("base64").replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_")
 }
 
-function ye(e) {
+function _e(e) {
 	var t = e.header,
 		r = e.payload,
 		n = e.secret || e.privateKey,
 		o = e.encoding,
-		i = le(t.alg),
-		a = function(e, t, r) {
+		i = ge(t.alg),
+		s = function(e, t, r) {
 			r = r || "utf8";
-			var n = ge(he(e), "binary"),
-				o = ge(he(t), r);
-			return s.format("%s.%s", n, o)
+			var n = be(we(e), "binary"),
+				o = be(we(t), r);
+			return a.format("%s.%s", n, o)
 		}(t, r, o),
-		c = i.sign(a, n);
-	return s.format("%s.%s", a, c)
+		c = i.sign(s, n);
+	return a.format("%s.%s", s, c)
 }
 
-function we(e) {
+function Se(e) {
 	var t = e.secret || e.privateKey || e.key,
-		r = new I(t);
+		r = new B(t);
 	this.readable = !0, this.header = e.header, this.encoding = e.encoding, this.secret = this.privateKey = this.key = r,
-		this.payload = new I(e.payload), this.secret.once("close", function() {
+		this.payload = new B(e.payload), this.secret.once("close", function() {
 			!this.payload.writable && this.readable && this.sign()
 		}.bind(this)), this.payload.once("close", function() {
 			!this.secret.writable && this.readable && this.sign()
 		}.bind(this))
 }
-s.inherits(we, i), we.prototype.sign = function() {
+a.inherits(Se, i), Se.prototype.sign = function() {
 	try {
-		var e = ye({
+		var e = _e({
 			header: this.header,
 			payload: this.payload.buffer,
 			secret: this.secret.buffer,
@@ -504,12 +540,12 @@ s.inherits(we, i), we.prototype.sign = function() {
 	} catch (e) {
 		this.readable = !1, this.emit("error", e), this.emit("close")
 	}
-}, we.sign = ye;
-var ve = we,
-	be = A.Buffer,
-	Se = /^[a-zA-Z0-9\-_]+?\.[a-zA-Z0-9\-_]+?\.([a-zA-Z0-9\-_]+)?$/;
+}, Se.sign = _e;
+var Ee = Se,
+	ke = P.Buffer,
+	xe = /^[a-zA-Z0-9\-_]+?\.[a-zA-Z0-9\-_]+?\.([a-zA-Z0-9\-_]+)?$/;
 
-function _e(e) {
+function je(e) {
 	if (function(e) {
 			return "[object Object]" === Object.prototype.toString.call(e)
 		}(e)) return e;
@@ -520,85 +556,85 @@ function _e(e) {
 	}
 }
 
-function Ee(e) {
+function Te(e) {
 	var t = e.split(".", 1)[0];
-	return _e(be.from(t, "base64").toString("binary"))
+	return je(ke.from(t, "base64").toString("binary"))
 }
 
-function xe(e) {
+function Oe(e) {
 	return e.split(".")[2]
 }
 
-function je(e) {
-	return Se.test(e) && !!Ee(e)
+function Ie(e) {
+	return xe.test(e) && !!Te(e)
 }
 
-function ke(e, t, r) {
+function Ce(e, t, r) {
 	if (!t) {
 		var n = new Error("Missing algorithm parameter for jws.verify");
 		throw n.code = "MISSING_ALGORITHM", n
 	}
-	var o = xe(e = he(e)),
+	var o = Oe(e = we(e)),
 		i = function(e) {
 			return e.split(".", 2).join(".")
 		}(e);
-	return le(t).verify(i, o, r)
+	return ge(t).verify(i, o, r)
 }
 
-function Te(e, t) {
-	if (t = t || {}, !je(e = he(e))) return null;
-	var r = Ee(e);
+function Ae(e, t) {
+	if (t = t || {}, !Ie(e = we(e))) return null;
+	var r = Te(e);
 	if (!r) return null;
 	var n = function(e, t) {
 		t = t || "utf8";
 		var r = e.split(".")[1];
-		return be.from(r, "base64").toString(t)
+		return ke.from(r, "base64").toString(t)
 	}(e);
 	return ("JWT" === r.typ || t.json) && (n = JSON.parse(n, t.encoding)), {
 		header: r,
 		payload: n,
-		signature: xe(e)
+		signature: Oe(e)
 	}
 }
 
-function Oe(e) {
+function Re(e) {
 	var t = (e = e || {}).secret || e.publicKey || e.key,
-		r = new I(t);
+		r = new B(t);
 	this.readable = !0, this.algorithm = e.algorithm, this.encoding = e.encoding, this.secret = this.publicKey = this.key =
-		r, this.signature = new I(e.signature), this.secret.once("close", function() {
+		r, this.signature = new B(e.signature), this.secret.once("close", function() {
 			!this.signature.writable && this.readable && this.verify()
 		}.bind(this)), this.signature.once("close", function() {
 			!this.secret.writable && this.readable && this.verify()
 		}.bind(this))
 }
-s.inherits(Oe, i), Oe.prototype.verify = function() {
+a.inherits(Re, i), Re.prototype.verify = function() {
 	try {
-		var e = ke(this.signature.buffer, this.algorithm, this.key.buffer),
-			t = Te(this.signature.buffer, this.encoding);
+		var e = Ce(this.signature.buffer, this.algorithm, this.key.buffer),
+			t = Ae(this.signature.buffer, this.encoding);
 		return this.emit("done", e, t), this.emit("data", e), this.emit("end"), this.readable = !1, e
 	} catch (e) {
 		this.readable = !1, this.emit("error", e), this.emit("close")
 	}
-}, Oe.decode = Te, Oe.isValid = je, Oe.verify = ke;
-var Ae = Oe,
-	Re = {
+}, Re.decode = Ae, Re.isValid = Ie, Re.verify = Ce;
+var Pe = Re,
+	$e = {
 		ALGORITHMS: ["HS256", "HS384", "HS512", "RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "ES256", "ES384",
 			"ES512"
 		],
-		sign: ve.sign,
-		verify: Ae.verify,
-		decode: Ae.decode,
-		isValid: Ae.isValid,
+		sign: Ee.sign,
+		verify: Pe.verify,
+		decode: Pe.decode,
+		isValid: Pe.isValid,
 		createSign: function(e) {
-			return new ve(e)
+			return new Ee(e)
 		},
 		createVerify: function(e) {
-			return new Ae(e)
+			return new Pe(e)
 		}
 	},
-	Pe = function(e, t) {
+	Ne = function(e, t) {
 		t = t || {};
-		var r = Re.decode(e, t);
+		var r = $e.decode(e, t);
 		if (!r) return null;
 		var n = r.payload;
 		if ("string" == typeof n) try {
@@ -611,27 +647,27 @@ var Ae = Oe,
 			signature: r.signature
 		} : n
 	},
-	Ie = function(e, t) {
+	Be = function(e, t) {
 		Error.call(this, e), Error.captureStackTrace && Error.captureStackTrace(this, this.constructor), this.name =
 			"JsonWebTokenError", this.message = e, t && (this.inner = t)
 	};
-(Ie.prototype = Object.create(Error.prototype)).constructor = Ie;
-var $e = Ie,
-	Ce = function(e, t) {
-		$e.call(this, e), this.name = "NotBeforeError", this.date = t
+(Be.prototype = Object.create(Error.prototype)).constructor = Be;
+var Me = Be,
+	De = function(e, t) {
+		Me.call(this, e), this.name = "NotBeforeError", this.date = t
 	};
-(Ce.prototype = Object.create($e.prototype)).constructor = Ce;
-var Ne = Ce,
-	Be = function(e, t) {
-		$e.call(this, e), this.name = "TokenExpiredError", this.expiredAt = t
+(De.prototype = Object.create(Me.prototype)).constructor = De;
+var Le = De,
+	Ke = function(e, t) {
+		Me.call(this, e), this.name = "TokenExpiredError", this.expiredAt = t
 	};
-(Be.prototype = Object.create($e.prototype)).constructor = Be;
-var De = Be,
-	Me = 1e3,
-	Ve = 60 * Me,
-	qe = 60 * Ve,
-	Ke = 24 * qe,
-	Le = function(e, t) {
+(Ke.prototype = Object.create(Me.prototype)).constructor = Ke;
+var Ve = Ke,
+	qe = 1e3,
+	Ue = 60 * qe,
+	He = 60 * Ue,
+	Fe = 24 * He,
+	Je = function(e, t) {
 		t = t || {};
 		var r = typeof e;
 		if ("string" === r && e.length > 0) return function(e) {
@@ -655,25 +691,25 @@ var De = Be,
 				case "days":
 				case "day":
 				case "d":
-					return r * Ke;
+					return r * Fe;
 				case "hours":
 				case "hour":
 				case "hrs":
 				case "hr":
 				case "h":
-					return r * qe;
+					return r * He;
 				case "minutes":
 				case "minute":
 				case "mins":
 				case "min":
 				case "m":
-					return r * Ve;
+					return r * Ue;
 				case "seconds":
 				case "second":
 				case "secs":
 				case "sec":
 				case "s":
-					return r * Me;
+					return r * qe;
 				case "milliseconds":
 				case "millisecond":
 				case "msecs":
@@ -686,38 +722,38 @@ var De = Be,
 		}(e);
 		if ("number" === r && isFinite(e)) return t.long ? function(e) {
 			var t = Math.abs(e);
-			if (t >= Ke) return He(e, t, Ke, "day");
-			if (t >= qe) return He(e, t, qe, "hour");
-			if (t >= Ve) return He(e, t, Ve, "minute");
-			if (t >= Me) return He(e, t, Me, "second");
+			if (t >= Fe) return Ge(e, t, Fe, "day");
+			if (t >= He) return Ge(e, t, He, "hour");
+			if (t >= Ue) return Ge(e, t, Ue, "minute");
+			if (t >= qe) return Ge(e, t, qe, "second");
 			return e + " ms"
 		}(e) : function(e) {
 			var t = Math.abs(e);
-			if (t >= Ke) return Math.round(e / Ke) + "d";
-			if (t >= qe) return Math.round(e / qe) + "h";
-			if (t >= Ve) return Math.round(e / Ve) + "m";
-			if (t >= Me) return Math.round(e / Me) + "s";
+			if (t >= Fe) return Math.round(e / Fe) + "d";
+			if (t >= He) return Math.round(e / He) + "h";
+			if (t >= Ue) return Math.round(e / Ue) + "m";
+			if (t >= qe) return Math.round(e / qe) + "s";
 			return e + "ms"
 		}(e);
 		throw new Error("val is not a non-empty string or a valid number. val=" + JSON.stringify(e))
 	};
 
-function He(e, t, r, n) {
+function Ge(e, t, r, n) {
 	var o = t >= 1.5 * r;
 	return Math.round(e / r) + " " + n + (o ? "s" : "")
 }
-var Ue = function(e, t) {
+var ze = function(e, t) {
 		var r = t || Math.floor(Date.now() / 1e3);
 		if ("string" == typeof e) {
-			var n = Le(e);
+			var n = Je(e);
 			if (void 0 === n) return;
 			return Math.floor(r + n / 1e3)
 		}
 		return "number" == typeof e ? r + e : void 0
 	},
-	Je = O((function(e, t) {
+	We = R((function(e, t) {
 		var r;
-		t = e.exports = F, r = "object" == typeof process && process.env && process.env.NODE_DEBUG && /\bsemver\b/i.test(
+		t = e.exports = J, r = "object" == typeof process && process.env && process.env.NODE_DEBUG && /\bsemver\b/i.test(
 			process.env.NODE_DEBUG) ? function() {
 			var e = Array.prototype.slice.call(arguments, 0);
 			e.unshift("SEMVER"), console.log.apply(console, e)
@@ -725,108 +761,108 @@ var Ue = function(e, t) {
 		var n = Number.MAX_SAFE_INTEGER || 9007199254740991,
 			o = t.re = [],
 			i = t.src = [],
-			s = 0,
-			a = s++;
-		i[a] = "0|[1-9]\\d*";
-		var c = s++;
+			a = 0,
+			s = a++;
+		i[s] = "0|[1-9]\\d*";
+		var c = a++;
 		i[c] = "[0-9]+";
-		var u = s++;
+		var u = a++;
 		i[u] = "\\d*[a-zA-Z-][a-zA-Z0-9-]*";
-		var f = s++;
-		i[f] = "(" + i[a] + ")\\.(" + i[a] + ")\\.(" + i[a] + ")";
-		var p = s++;
-		i[p] = "(" + i[c] + ")\\.(" + i[c] + ")\\.(" + i[c] + ")";
-		var l = s++;
-		i[l] = "(?:" + i[a] + "|" + i[u] + ")";
-		var d = s++;
-		i[d] = "(?:" + i[c] + "|" + i[u] + ")";
-		var h = s++;
-		i[h] = "(?:-(" + i[l] + "(?:\\." + i[l] + ")*))";
-		var m = s++;
-		i[m] = "(?:-?(" + i[d] + "(?:\\." + i[d] + ")*))";
-		var g = s++;
+		var f = a++;
+		i[f] = "(" + i[s] + ")\\.(" + i[s] + ")\\.(" + i[s] + ")";
+		var d = a++;
+		i[d] = "(" + i[c] + ")\\.(" + i[c] + ")\\.(" + i[c] + ")";
+		var p = a++;
+		i[p] = "(?:" + i[s] + "|" + i[u] + ")";
+		var l = a++;
+		i[l] = "(?:" + i[c] + "|" + i[u] + ")";
+		var m = a++;
+		i[m] = "(?:-(" + i[p] + "(?:\\." + i[p] + ")*))";
+		var h = a++;
+		i[h] = "(?:-?(" + i[l] + "(?:\\." + i[l] + ")*))";
+		var g = a++;
 		i[g] = "[0-9A-Za-z-]+";
-		var y = s++;
+		var y = a++;
 		i[y] = "(?:\\+(" + i[g] + "(?:\\." + i[g] + ")*))";
-		var w = s++,
-			v = "v?" + i[f] + i[h] + "?" + i[y] + "?";
+		var w = a++,
+			v = "v?" + i[f] + i[m] + "?" + i[y] + "?";
 		i[w] = "^" + v + "$";
-		var b = "[v=\\s]*" + i[p] + i[m] + "?" + i[y] + "?",
-			S = s++;
-		i[S] = "^" + b + "$";
-		var _ = s++;
-		i[_] = "((?:<|>)?=?)";
-		var E = s++;
+		var b = "[v=\\s]*" + i[d] + i[h] + "?" + i[y] + "?",
+			_ = a++;
+		i[_] = "^" + b + "$";
+		var S = a++;
+		i[S] = "((?:<|>)?=?)";
+		var E = a++;
 		i[E] = i[c] + "|x|X|\\*";
-		var x = s++;
-		i[x] = i[a] + "|x|X|\\*";
-		var j = s++;
-		i[j] = "[v=\\s]*(" + i[x] + ")(?:\\.(" + i[x] + ")(?:\\.(" + i[x] + ")(?:" + i[h] + ")?" + i[y] + "?)?)?";
-		var k = s++;
-		i[k] = "[v=\\s]*(" + i[E] + ")(?:\\.(" + i[E] + ")(?:\\.(" + i[E] + ")(?:" + i[m] + ")?" + i[y] + "?)?)?";
-		var T = s++;
-		i[T] = "^" + i[_] + "\\s*" + i[j] + "$";
-		var O = s++;
-		i[O] = "^" + i[_] + "\\s*" + i[k] + "$";
-		var A = s++;
-		i[A] = "(?:^|[^\\d])(\\d{1,16})(?:\\.(\\d{1,16}))?(?:\\.(\\d{1,16}))?(?:$|[^\\d])";
-		var R = s++;
-		i[R] = "(?:~>?)";
-		var P = s++;
-		i[P] = "(\\s*)" + i[R] + "\\s+", o[P] = new RegExp(i[P], "g");
-		var I = s++;
-		i[I] = "^" + i[R] + i[j] + "$";
-		var $ = s++;
-		i[$] = "^" + i[R] + i[k] + "$";
-		var C = s++;
-		i[C] = "(?:\\^)";
-		var N = s++;
-		i[N] = "(\\s*)" + i[C] + "\\s+", o[N] = new RegExp(i[N], "g");
-		var B = s++;
-		i[B] = "^" + i[C] + i[j] + "$";
-		var D = s++;
-		i[D] = "^" + i[C] + i[k] + "$";
-		var M = s++;
-		i[M] = "^" + i[_] + "\\s*(" + b + ")$|^$";
-		var V = s++;
-		i[V] = "^" + i[_] + "\\s*(" + v + ")$|^$";
-		var q = s++;
-		i[q] = "(\\s*)" + i[_] + "\\s*(" + b + "|" + i[j] + ")", o[q] = new RegExp(i[q], "g");
-		var K = s++;
-		i[K] = "^\\s*(" + i[j] + ")\\s+-\\s+(" + i[j] + ")\\s*$";
-		var L = s++;
-		i[L] = "^\\s*(" + i[k] + ")\\s+-\\s+(" + i[k] + ")\\s*$";
-		var H = s++;
-		i[H] = "(<|>)?=?\\s*\\*";
-		for (var U = 0; U < 35; U++) r(U, i[U]), o[U] || (o[U] = new RegExp(i[U]));
-
-		function J(e, t) {
-			if (t && "object" == typeof t || (t = {
-					loose: !!t,
-					includePrerelease: !1
-				}), e instanceof F) return e;
-			if ("string" != typeof e) return null;
-			if (e.length > 256) return null;
-			if (!(t.loose ? o[S] : o[w]).test(e)) return null;
-			try {
-				return new F(e, t)
-			} catch (e) {
-				return null
-			}
-		}
+		var k = a++;
+		i[k] = i[s] + "|x|X|\\*";
+		var x = a++;
+		i[x] = "[v=\\s]*(" + i[k] + ")(?:\\.(" + i[k] + ")(?:\\.(" + i[k] + ")(?:" + i[m] + ")?" + i[y] + "?)?)?";
+		var j = a++;
+		i[j] = "[v=\\s]*(" + i[E] + ")(?:\\.(" + i[E] + ")(?:\\.(" + i[E] + ")(?:" + i[h] + ")?" + i[y] + "?)?)?";
+		var T = a++;
+		i[T] = "^" + i[S] + "\\s*" + i[x] + "$";
+		var O = a++;
+		i[O] = "^" + i[S] + "\\s*" + i[j] + "$";
+		var I = a++;
+		i[I] = "(?:^|[^\\d])(\\d{1,16})(?:\\.(\\d{1,16}))?(?:\\.(\\d{1,16}))?(?:$|[^\\d])";
+		var C = a++;
+		i[C] = "(?:~>?)";
+		var A = a++;
+		i[A] = "(\\s*)" + i[C] + "\\s+", o[A] = new RegExp(i[A], "g");
+		var R = a++;
+		i[R] = "^" + i[C] + i[x] + "$";
+		var P = a++;
+		i[P] = "^" + i[C] + i[j] + "$";
+		var $ = a++;
+		i[$] = "(?:\\^)";
+		var N = a++;
+		i[N] = "(\\s*)" + i[$] + "\\s+", o[N] = new RegExp(i[N], "g");
+		var B = a++;
+		i[B] = "^" + i[$] + i[x] + "$";
+		var M = a++;
+		i[M] = "^" + i[$] + i[j] + "$";
+		var D = a++;
+		i[D] = "^" + i[S] + "\\s*(" + b + ")$|^$";
+		var L = a++;
+		i[L] = "^" + i[S] + "\\s*(" + v + ")$|^$";
+		var K = a++;
+		i[K] = "(\\s*)" + i[S] + "\\s*(" + b + "|" + i[x] + ")", o[K] = new RegExp(i[K], "g");
+		var V = a++;
+		i[V] = "^\\s*(" + i[x] + ")\\s+-\\s+(" + i[x] + ")\\s*$";
+		var q = a++;
+		i[q] = "^\\s*(" + i[j] + ")\\s+-\\s+(" + i[j] + ")\\s*$";
+		var U = a++;
+		i[U] = "(<|>)?=?\\s*\\*";
+		for (var H = 0; H < 35; H++) r(H, i[H]), o[H] || (o[H] = new RegExp(i[H]));
 
 		function F(e, t) {
 			if (t && "object" == typeof t || (t = {
 					loose: !!t,
 					includePrerelease: !1
-				}), e instanceof F) {
+				}), e instanceof J) return e;
+			if ("string" != typeof e) return null;
+			if (e.length > 256) return null;
+			if (!(t.loose ? o[_] : o[w]).test(e)) return null;
+			try {
+				return new J(e, t)
+			} catch (e) {
+				return null
+			}
+		}
+
+		function J(e, t) {
+			if (t && "object" == typeof t || (t = {
+					loose: !!t,
+					includePrerelease: !1
+				}), e instanceof J) {
 				if (e.loose === t.loose) return e;
 				e = e.version
 			} else if ("string" != typeof e) throw new TypeError("Invalid Version: " + e);
 			if (e.length > 256) throw new TypeError("version is longer than 256 characters");
-			if (!(this instanceof F)) return new F(e, t);
+			if (!(this instanceof J)) return new J(e, t);
 			r("SemVer", e, t), this.options = t, this.loose = !!t.loose;
-			var i = e.trim().match(t.loose ? o[S] : o[w]);
+			var i = e.trim().match(t.loose ? o[_] : o[w]);
 			if (!i) throw new TypeError("Invalid Version: " + e);
 			if (this.raw = e, this.major = +i[1], this.minor = +i[2], this.patch = +i[3], this.major > n || this.major < 0)
 				throw new TypeError("Invalid major version");
@@ -840,25 +876,25 @@ var Ue = function(e, t) {
 				return e
 			})) : this.prerelease = [], this.build = i[5] ? i[5].split(".") : [], this.format()
 		}
-		t.parse = J, t.valid = function(e, t) {
-			var r = J(e, t);
+		t.parse = F, t.valid = function(e, t) {
+			var r = F(e, t);
 			return r ? r.version : null
 		}, t.clean = function(e, t) {
-			var r = J(e.trim().replace(/^[=v]+/, ""), t);
+			var r = F(e.trim().replace(/^[=v]+/, ""), t);
 			return r ? r.version : null
-		}, t.SemVer = F, F.prototype.format = function() {
+		}, t.SemVer = J, J.prototype.format = function() {
 			return this.version = this.major + "." + this.minor + "." + this.patch, this.prerelease.length && (this.version +=
 				"-" + this.prerelease.join(".")), this.version
-		}, F.prototype.toString = function() {
+		}, J.prototype.toString = function() {
 			return this.version
-		}, F.prototype.compare = function(e) {
-			return r("SemVer.compare", this.version, this.options, e), e instanceof F || (e = new F(e, this.options)), this.compareMain(
+		}, J.prototype.compare = function(e) {
+			return r("SemVer.compare", this.version, this.options, e), e instanceof J || (e = new J(e, this.options)), this.compareMain(
 				e) || this.comparePre(e)
-		}, F.prototype.compareMain = function(e) {
-			return e instanceof F || (e = new F(e, this.options)), z(this.major, e.major) || z(this.minor, e.minor) || z(this
+		}, J.prototype.compareMain = function(e) {
+			return e instanceof J || (e = new J(e, this.options)), z(this.major, e.major) || z(this.minor, e.minor) || z(this
 				.patch, e.patch)
-		}, F.prototype.comparePre = function(e) {
-			if (e instanceof F || (e = new F(e, this.options)), this.prerelease.length && !e.prerelease.length) return -1;
+		}, J.prototype.comparePre = function(e) {
+			if (e instanceof J || (e = new J(e, this.options)), this.prerelease.length && !e.prerelease.length) return -1;
 			if (!this.prerelease.length && e.prerelease.length) return 1;
 			if (!this.prerelease.length && !e.prerelease.length) return 0;
 			var t = 0;
@@ -870,7 +906,7 @@ var Ue = function(e, t) {
 				if (void 0 === n) return -1;
 				if (n !== o) return z(n, o)
 			} while (++t)
-		}, F.prototype.inc = function(e, t) {
+		}, J.prototype.inc = function(e, t) {
 			switch (e) {
 				case "premajor":
 					this.prerelease.length = 0, this.patch = 0, this.minor = 0, this.major++, this.inc("pre", t);
@@ -911,21 +947,21 @@ var Ue = function(e, t) {
 		}, t.inc = function(e, t, r, n) {
 			"string" == typeof r && (n = r, r = void 0);
 			try {
-				return new F(e, r).inc(t, n).version
+				return new J(e, r).inc(t, n).version
 			} catch (e) {
 				return null
 			}
 		}, t.diff = function(e, t) {
 			if (X(e, t)) return null;
-			var r = J(e),
-				n = J(t),
+			var r = F(e),
+				n = F(t),
 				o = "";
 			if (r.prerelease.length || n.prerelease.length) {
 				o = "pre";
 				var i = "prerelease"
 			}
-			for (var s in r)
-				if (("major" === s || "minor" === s || "patch" === s) && r[s] !== n[s]) return o + s;
+			for (var a in r)
+				if (("major" === a || "minor" === a || "patch" === a) && r[a] !== n[a]) return o + a;
 			return i
 		}, t.compareIdentifiers = z;
 		var G = /^[0-9]+$/;
@@ -937,7 +973,7 @@ var Ue = function(e, t) {
 		}
 
 		function W(e, t, r) {
-			return new F(e, r).compare(new F(t, r))
+			return new J(e, r).compare(new J(t, r))
 		}
 
 		function Z(e, t, r) {
@@ -1004,11 +1040,11 @@ var Ue = function(e, t) {
 		t.rcompareIdentifiers = function(e, t) {
 			return z(t, e)
 		}, t.major = function(e, t) {
-			return new F(e, t).major
+			return new J(e, t).major
 		}, t.minor = function(e, t) {
-			return new F(e, t).minor
+			return new J(e, t).minor
 		}, t.patch = function(e, t) {
-			return new F(e, t).patch
+			return new J(e, t).patch
 		}, t.compare = W, t.compareLoose = function(e, t) {
 			return W(e, t, !0)
 		}, t.rcompare = function(e, t, r) {
@@ -1041,14 +1077,14 @@ var Ue = function(e, t) {
 			this.format()
 		}
 
-		function se(e) {
+		function ae(e) {
 			return !e || "x" === e.toLowerCase() || "*" === e
 		}
 
-		function ae(e, t, r, n, o, i, s, a, c, u, f, p, l) {
-			return ((t = se(r) ? "" : se(n) ? ">=" + r + ".0.0" : se(o) ? ">=" + r + "." + n + ".0" : ">=" + t) + " " + (a =
-				se(c) ? "" : se(u) ? "<" + (+c + 1) + ".0.0" : se(f) ? "<" + c + "." + (+u + 1) + ".0" : p ? "<=" + c + "." + u +
-				"." + f + "-" + p : "<=" + a)).trim()
+		function se(e, t, r, n, o, i, a, s, c, u, f, d, p) {
+			return ((t = ae(r) ? "" : ae(n) ? ">=" + r + ".0.0" : ae(o) ? ">=" + r + "." + n + ".0" : ">=" + t) + " " + (s =
+				ae(c) ? "" : ae(u) ? "<" + (+c + 1) + ".0.0" : ae(f) ? "<" + c + "." + (+u + 1) + ".0" : d ? "<=" + c + "." + u +
+				"." + f + "-" + d : "<=" + s)).trim()
 		}
 
 		function ce(e, t, n) {
@@ -1074,13 +1110,13 @@ var Ue = function(e, t) {
 		}
 
 		function fe(e, t, r, n) {
-			var o, i, s, a, c;
-			switch (e = new F(e, n), t = new ie(t, n), r) {
+			var o, i, a, s, c;
+			switch (e = new J(e, n), t = new ie(t, n), r) {
 				case ">":
-					o = Z, i = te, s = Y, a = ">", c = ">=";
+					o = Z, i = te, a = Y, s = ">", c = ">=";
 					break;
 				case "<":
-					o = Y, i = ee, s = Z, a = "<", c = "<=";
+					o = Y, i = ee, a = Z, s = "<", c = "<=";
 					break;
 				default:
 					throw new TypeError('Must provide a hilo val of "<" or ">"')
@@ -1088,27 +1124,27 @@ var Ue = function(e, t) {
 			if (ue(e, t, n)) return !1;
 			for (var u = 0; u < t.set.length; ++u) {
 				var f = t.set[u],
-					p = null,
-					l = null;
+					d = null,
+					p = null;
 				if (f.forEach((function(e) {
-						e.semver === oe && (e = new ne(">=0.0.0")), p = p || e, l = l || e, o(e.semver, p.semver, n) ? p = e : s(e.semver,
-							l.semver, n) && (l = e)
-					})), p.operator === a || p.operator === c) return !1;
-				if ((!l.operator || l.operator === a) && i(e, l.semver)) return !1;
-				if (l.operator === c && s(e, l.semver)) return !1
+						e.semver === oe && (e = new ne(">=0.0.0")), d = d || e, p = p || e, o(e.semver, d.semver, n) ? d = e : a(e.semver,
+							p.semver, n) && (p = e)
+					})), d.operator === s || d.operator === c) return !1;
+				if ((!p.operator || p.operator === s) && i(e, p.semver)) return !1;
+				if (p.operator === c && a(e, p.semver)) return !1
 			}
 			return !0
 		}
 		ne.prototype.parse = function(e) {
-			var t = this.options.loose ? o[M] : o[V],
+			var t = this.options.loose ? o[D] : o[L],
 				r = e.match(t);
 			if (!r) throw new TypeError("Invalid comparator: " + e);
-			this.operator = r[1], "=" === this.operator && (this.operator = ""), r[2] ? this.semver = new F(r[2], this.options
+			this.operator = r[1], "=" === this.operator && (this.operator = ""), r[2] ? this.semver = new J(r[2], this.options
 				.loose) : this.semver = oe
 		}, ne.prototype.toString = function() {
 			return this.value
 		}, ne.prototype.test = function(e) {
-			return r("Comparator.test", e, this.options.loose), this.semver === oe || ("string" == typeof e && (e = new F(e,
+			return r("Comparator.test", e, this.options.loose), this.semver === oe || ("string" == typeof e && (e = new J(e,
 				this.options)), re(e, this.operator, this.semver, this.options))
 		}, ne.prototype.intersects = function(e, t) {
 			if (!(e instanceof ne)) throw new TypeError("a Comparator is required");
@@ -1121,12 +1157,12 @@ var Ue = function(e, t) {
 			var n = !(">=" !== this.operator && ">" !== this.operator || ">=" !== e.operator && ">" !== e.operator),
 				o = !("<=" !== this.operator && "<" !== this.operator || "<=" !== e.operator && "<" !== e.operator),
 				i = this.semver.version === e.semver.version,
-				s = !(">=" !== this.operator && "<=" !== this.operator || ">=" !== e.operator && "<=" !== e.operator),
-				a = re(this.semver, "<", e.semver, t) && (">=" === this.operator || ">" === this.operator) && ("<=" === e.operator ||
+				a = !(">=" !== this.operator && "<=" !== this.operator || ">=" !== e.operator && "<=" !== e.operator),
+				s = re(this.semver, "<", e.semver, t) && (">=" === this.operator || ">" === this.operator) && ("<=" === e.operator ||
 					"<" === e.operator),
 				c = re(this.semver, ">", e.semver, t) && ("<=" === this.operator || "<" === this.operator) && (">=" === e.operator ||
 					">" === e.operator);
-			return n || o || i && s || a || c
+			return n || o || i && a || s || c
 		}, t.Range = ie, ie.prototype.format = function() {
 			return this.range = this.set.map((function(e) {
 				return e.join(" ").trim()
@@ -1136,42 +1172,42 @@ var Ue = function(e, t) {
 		}, ie.prototype.parseRange = function(e) {
 			var t = this.options.loose;
 			e = e.trim();
-			var n = t ? o[L] : o[K];
-			e = e.replace(n, ae), r("hyphen replace", e), e = e.replace(o[q], "$1$2$3"), r("comparator trim", e, o[q]), e = (
-				e = (e = e.replace(o[P], "$1~")).replace(o[N], "$1^")).split(/\s+/).join(" ");
-			var i = t ? o[M] : o[V],
-				s = e.split(" ").map((function(e) {
+			var n = t ? o[q] : o[V];
+			e = e.replace(n, se), r("hyphen replace", e), e = e.replace(o[K], "$1$2$3"), r("comparator trim", e, o[K]), e = (
+				e = (e = e.replace(o[A], "$1~")).replace(o[N], "$1^")).split(/\s+/).join(" ");
+			var i = t ? o[D] : o[L],
+				a = e.split(" ").map((function(e) {
 					return function(e, t) {
 						return r("comp", e, t), e = function(e, t) {
 							return e.trim().split(/\s+/).map((function(e) {
 								return function(e, t) {
 									r("caret", e, t);
-									var n = t.loose ? o[D] : o[B];
-									return e.replace(n, (function(t, n, o, i, s) {
-										var a;
-										return r("caret", e, t, n, o, i, s), se(n) ? a = "" : se(o) ? a = ">=" + n + ".0.0 <" + (+n + 1) +
-											".0.0" : se(i) ? a = "0" === n ? ">=" + n + "." + o + ".0 <" + n + "." + (+o + 1) + ".0" :
-											">=" + n + "." + o + ".0 <" + (+n + 1) + ".0.0" : s ? (r("replaceCaret pr", s), a = "0" === n ?
-												"0" === o ? ">=" + n + "." + o + "." + i + "-" + s + " <" + n + "." + o + "." + (+i + 1) :
-												">=" + n + "." + o + "." + i + "-" + s + " <" + n + "." + (+o + 1) + ".0" : ">=" + n + "." +
-												o + "." + i + "-" + s + " <" + (+n + 1) + ".0.0") : (r("no pr"), a = "0" === n ? "0" === o ?
+									var n = t.loose ? o[M] : o[B];
+									return e.replace(n, (function(t, n, o, i, a) {
+										var s;
+										return r("caret", e, t, n, o, i, a), ae(n) ? s = "" : ae(o) ? s = ">=" + n + ".0.0 <" + (+n + 1) +
+											".0.0" : ae(i) ? s = "0" === n ? ">=" + n + "." + o + ".0 <" + n + "." + (+o + 1) + ".0" :
+											">=" + n + "." + o + ".0 <" + (+n + 1) + ".0.0" : a ? (r("replaceCaret pr", a), s = "0" === n ?
+												"0" === o ? ">=" + n + "." + o + "." + i + "-" + a + " <" + n + "." + o + "." + (+i + 1) :
+												">=" + n + "." + o + "." + i + "-" + a + " <" + n + "." + (+o + 1) + ".0" : ">=" + n + "." +
+												o + "." + i + "-" + a + " <" + (+n + 1) + ".0.0") : (r("no pr"), s = "0" === n ? "0" === o ?
 												">=" + n + "." + o + "." + i + " <" + n + "." + o + "." + (+i + 1) : ">=" + n + "." + o + "." +
 												i + " <" + n + "." + (+o + 1) + ".0" : ">=" + n + "." + o + "." + i + " <" + (+n + 1) +
-												".0.0"), r("caret return", a), a
+												".0.0"), r("caret return", s), s
 									}))
 								}(e, t)
 							})).join(" ")
 						}(e, t), r("caret", e), e = function(e, t) {
 							return e.trim().split(/\s+/).map((function(e) {
 								return function(e, t) {
-									var n = t.loose ? o[$] : o[I];
-									return e.replace(n, (function(t, n, o, i, s) {
-										var a;
-										return r("tilde", e, t, n, o, i, s), se(n) ? a = "" : se(o) ? a = ">=" + n + ".0.0 <" + (+n + 1) +
-											".0.0" : se(i) ? a = ">=" + n + "." + o + ".0 <" + n + "." + (+o + 1) + ".0" : s ? (r(
-													"replaceTilde pr", s), a = ">=" + n + "." + o + "." + i + "-" + s + " <" + n + "." + (+o + 1) +
-												".0") : a = ">=" + n + "." + o + "." + i + " <" + n + "." + (+o + 1) + ".0", r("tilde return",
-												a), a
+									var n = t.loose ? o[P] : o[R];
+									return e.replace(n, (function(t, n, o, i, a) {
+										var s;
+										return r("tilde", e, t, n, o, i, a), ae(n) ? s = "" : ae(o) ? s = ">=" + n + ".0.0 <" + (+n + 1) +
+											".0.0" : ae(i) ? s = ">=" + n + "." + o + ".0 <" + n + "." + (+o + 1) + ".0" : a ? (r(
+													"replaceTilde pr", a), s = ">=" + n + "." + o + "." + i + "-" + a + " <" + n + "." + (+o + 1) +
+												".0") : s = ">=" + n + "." + o + "." + i + " <" + n + "." + (+o + 1) + ".0", r("tilde return",
+												s), s
 									}))
 								}(e, t)
 							})).join(" ")
@@ -1180,27 +1216,27 @@ var Ue = function(e, t) {
 								return function(e, t) {
 									e = e.trim();
 									var n = t.loose ? o[O] : o[T];
-									return e.replace(n, (function(t, n, o, i, s, a) {
-										r("xRange", e, t, n, o, i, s, a);
-										var c = se(o),
-											u = c || se(i),
-											f = u || se(s);
+									return e.replace(n, (function(t, n, o, i, a, s) {
+										r("xRange", e, t, n, o, i, a, s);
+										var c = ae(o),
+											u = c || ae(i),
+											f = u || ae(a);
 										return "=" === n && f && (n = ""), c ? t = ">" === n || "<" === n ? "<0.0.0" : "*" : n && f ? (
-												u && (i = 0), s = 0, ">" === n ? (n = ">=", u ? (o = +o + 1, i = 0, s = 0) : (i = +i + 1, s =
-													0)) : "<=" === n && (n = "<", u ? o = +o + 1 : i = +i + 1), t = n + o + "." + i + "." + s) :
+												u && (i = 0), a = 0, ">" === n ? (n = ">=", u ? (o = +o + 1, i = 0, a = 0) : (i = +i + 1, a =
+													0)) : "<=" === n && (n = "<", u ? o = +o + 1 : i = +i + 1), t = n + o + "." + i + "." + a) :
 											u ? t = ">=" + o + ".0.0 <" + (+o + 1) + ".0.0" : f && (t = ">=" + o + "." + i + ".0 <" + o +
 												"." + (+i + 1) + ".0"), r("xRange return", t), t
 									}))
 								}(e, t)
 							})).join(" ")
 						}(e, t), r("xrange", e), e = function(e, t) {
-							return r("replaceStars", e, t), e.trim().replace(o[H], "")
+							return r("replaceStars", e, t), e.trim().replace(o[U], "")
 						}(e, t), r("stars", e), e
 					}(e, this.options)
 				}), this).join(" ").split(/\s+/);
-			return this.options.loose && (s = s.filter((function(e) {
+			return this.options.loose && (a = a.filter((function(e) {
 				return !!e.match(i)
-			}))), s = s.map((function(e) {
+			}))), a = a.map((function(e) {
 				return new ne(e, this.options)
 			}), this)
 		}, ie.prototype.intersects = function(e, t) {
@@ -1222,7 +1258,7 @@ var Ue = function(e, t) {
 			}))
 		}, ie.prototype.test = function(e) {
 			if (!e) return !1;
-			"string" == typeof e && (e = new F(e, this.options));
+			"string" == typeof e && (e = new J(e, this.options));
 			for (var t = 0; t < this.set.length; t++)
 				if (ce(this.set[t], e, this.options)) return !0;
 			return !1
@@ -1235,7 +1271,7 @@ var Ue = function(e, t) {
 				return null
 			}
 			return e.forEach((function(e) {
-				i.test(e) && (n && -1 !== o.compare(e) || (o = new F(n = e, r)))
+				i.test(e) && (n && -1 !== o.compare(e) || (o = new J(n = e, r)))
 			})), n
 		}, t.minSatisfying = function(e, t, r) {
 			var n = null,
@@ -1246,17 +1282,17 @@ var Ue = function(e, t) {
 				return null
 			}
 			return e.forEach((function(e) {
-				i.test(e) && (n && 1 !== o.compare(e) || (o = new F(n = e, r)))
+				i.test(e) && (n && 1 !== o.compare(e) || (o = new J(n = e, r)))
 			})), n
 		}, t.minVersion = function(e, t) {
 			e = new ie(e, t);
-			var r = new F("0.0.0");
+			var r = new J("0.0.0");
 			if (e.test(r)) return r;
-			if (r = new F("0.0.0-0"), e.test(r)) return r;
+			if (r = new J("0.0.0-0"), e.test(r)) return r;
 			r = null;
 			for (var n = 0; n < e.set.length; ++n) {
 				e.set[n].forEach((function(e) {
-					var t = new F(e.semver.version);
+					var t = new J(e.semver.version);
 					switch (e.operator) {
 						case ">":
 							0 === t.prerelease.length ? t.patch++ : t.prerelease.push(0), t.raw = t.format();
@@ -1285,39 +1321,39 @@ var Ue = function(e, t) {
 		}, t.gtr = function(e, t, r) {
 			return fe(e, t, ">", r)
 		}, t.outside = fe, t.prerelease = function(e, t) {
-			var r = J(e, t);
+			var r = F(e, t);
 			return r && r.prerelease.length ? r.prerelease : null
 		}, t.intersects = function(e, t, r) {
 			return e = new ie(e, r), t = new ie(t, r), e.intersects(t)
 		}, t.coerce = function(e) {
-			if (e instanceof F) return e;
+			if (e instanceof J) return e;
 			if ("string" != typeof e) return null;
-			var t = e.match(o[A]);
+			var t = e.match(o[I]);
 			if (null == t) return null;
-			return J(t[1] + "." + (t[2] || "0") + "." + (t[3] || "0"))
+			return F(t[1] + "." + (t[2] || "0") + "." + (t[3] || "0"))
 		}
 	})),
-	Fe = (Je.SEMVER_SPEC_VERSION, Je.re, Je.src, Je.parse, Je.valid, Je.clean, Je.SemVer, Je.inc, Je.diff, Je.compareIdentifiers,
-		Je.rcompareIdentifiers, Je.major, Je.minor, Je.patch, Je.compare, Je.compareLoose, Je.rcompare, Je.sort, Je.rsort, Je
-		.gt, Je.lt, Je.eq, Je.neq, Je.gte, Je.lte, Je.cmp, Je.Comparator, Je.Range, Je.toComparators, Je.satisfies, Je.maxSatisfying,
-		Je.minSatisfying, Je.minVersion, Je.validRange, Je.ltr, Je.gtr, Je.outside, Je.prerelease, Je.intersects, Je.coerce,
-		Je.satisfies(process.version, "^6.12.0 || >=8.0.0")),
-	Ge = ["RS256", "RS384", "RS512", "ES256", "ES384", "ES512"],
-	ze = ["RS256", "RS384", "RS512"],
-	We = ["HS256", "HS384", "HS512"];
-Fe && (Ge.splice(3, 0, "PS256", "PS384", "PS512"), ze.splice(3, 0, "PS256", "PS384", "PS512"));
-var Ze = /^\s+|\s+$/g,
-	Ye = /^[-+]0x[0-9a-f]+$/i,
-	Xe = /^0b[01]+$/i,
-	Qe = /^0o[0-7]+$/i,
-	et = /^(?:0|[1-9]\d*)$/,
-	tt = parseInt;
+	Ze = (We.SEMVER_SPEC_VERSION, We.re, We.src, We.parse, We.valid, We.clean, We.SemVer, We.inc, We.diff, We.compareIdentifiers,
+		We.rcompareIdentifiers, We.major, We.minor, We.patch, We.compare, We.compareLoose, We.rcompare, We.sort, We.rsort, We
+		.gt, We.lt, We.eq, We.neq, We.gte, We.lte, We.cmp, We.Comparator, We.Range, We.toComparators, We.satisfies, We.maxSatisfying,
+		We.minSatisfying, We.minVersion, We.validRange, We.ltr, We.gtr, We.outside, We.prerelease, We.intersects, We.coerce,
+		We.satisfies(process.version, "^6.12.0 || >=8.0.0")),
+	Ye = ["RS256", "RS384", "RS512", "ES256", "ES384", "ES512"],
+	Xe = ["RS256", "RS384", "RS512"],
+	Qe = ["HS256", "HS384", "HS512"];
+Ze && (Ye.splice(3, 0, "PS256", "PS384", "PS512"), Xe.splice(3, 0, "PS256", "PS384", "PS512"));
+var et = /^\s+|\s+$/g,
+	tt = /^[-+]0x[0-9a-f]+$/i,
+	rt = /^0b[01]+$/i,
+	nt = /^0o[0-7]+$/i,
+	ot = /^(?:0|[1-9]\d*)$/,
+	it = parseInt;
 
-function rt(e) {
+function at(e) {
 	return e != e
 }
 
-function nt(e, t) {
+function st(e, t) {
 	return function(e, t) {
 		for (var r = -1, n = e ? e.length : 0, o = Array(n); ++r < n;) o[r] = t(e[r], r, e);
 		return o
@@ -1325,80 +1361,80 @@ function nt(e, t) {
 		return e[t]
 	}))
 }
-var ot, it, st = Object.prototype,
-	at = st.hasOwnProperty,
-	ct = st.toString,
-	ut = st.propertyIsEnumerable,
-	ft = (ot = Object.keys, it = Object, function(e) {
-		return ot(it(e))
+var ct, ut, ft = Object.prototype,
+	dt = ft.hasOwnProperty,
+	pt = ft.toString,
+	lt = ft.propertyIsEnumerable,
+	mt = (ct = Object.keys, ut = Object, function(e) {
+		return ct(ut(e))
 	}),
-	pt = Math.max;
+	ht = Math.max;
 
-function lt(e, t) {
-	var r = mt(e) || function(e) {
+function gt(e, t) {
+	var r = vt(e) || function(e) {
 			return function(e) {
-				return wt(e) && gt(e)
-			}(e) && at.call(e, "callee") && (!ut.call(e, "callee") || "[object Arguments]" == ct.call(e))
+				return St(e) && bt(e)
+			}(e) && dt.call(e, "callee") && (!lt.call(e, "callee") || "[object Arguments]" == pt.call(e))
 		}(e) ? function(e, t) {
 			for (var r = -1, n = Array(e); ++r < e;) n[r] = t(r);
 			return n
 		}(e.length, String) : [],
 		n = r.length,
 		o = !!n;
-	for (var i in e) !t && !at.call(e, i) || o && ("length" == i || ht(i, n)) || r.push(i);
+	for (var i in e) !t && !dt.call(e, i) || o && ("length" == i || wt(i, n)) || r.push(i);
 	return r
 }
 
-function dt(e) {
-	if (r = (t = e) && t.constructor, n = "function" == typeof r && r.prototype || st, t !== n) return ft(e);
+function yt(e) {
+	if (r = (t = e) && t.constructor, n = "function" == typeof r && r.prototype || ft, t !== n) return mt(e);
 	var t, r, n, o = [];
-	for (var i in Object(e)) at.call(e, i) && "constructor" != i && o.push(i);
+	for (var i in Object(e)) dt.call(e, i) && "constructor" != i && o.push(i);
 	return o
 }
 
-function ht(e, t) {
-	return !!(t = null == t ? 9007199254740991 : t) && ("number" == typeof e || et.test(e)) && e > -1 && e % 1 == 0 && e <
+function wt(e, t) {
+	return !!(t = null == t ? 9007199254740991 : t) && ("number" == typeof e || ot.test(e)) && e > -1 && e % 1 == 0 && e <
 		t
 }
-var mt = Array.isArray;
+var vt = Array.isArray;
 
-function gt(e) {
+function bt(e) {
 	return null != e && function(e) {
 		return "number" == typeof e && e > -1 && e % 1 == 0 && e <= 9007199254740991
 	}(e.length) && ! function(e) {
-		var t = yt(e) ? ct.call(e) : "";
+		var t = _t(e) ? pt.call(e) : "";
 		return "[object Function]" == t || "[object GeneratorFunction]" == t
 	}(e)
 }
 
-function yt(e) {
+function _t(e) {
 	var t = typeof e;
 	return !!e && ("object" == t || "function" == t)
 }
 
-function wt(e) {
+function St(e) {
 	return !!e && "object" == typeof e
 }
-var vt = function(e, t, r, n) {
+var Et = function(e, t, r, n) {
 		var o;
-		e = gt(e) ? e : (o = e) ? nt(o, function(e) {
-			return gt(e) ? lt(e) : dt(e)
+		e = bt(e) ? e : (o = e) ? st(o, function(e) {
+			return bt(e) ? gt(e) : yt(e)
 		}(o)) : [], r = r && !n ? function(e) {
 			var t = function(e) {
 					if (!e) return 0 === e ? e : 0;
 					if ((e = function(e) {
 							if ("number" == typeof e) return e;
 							if (function(e) {
-									return "symbol" == typeof e || wt(e) && "[object Symbol]" == ct.call(e)
+									return "symbol" == typeof e || St(e) && "[object Symbol]" == pt.call(e)
 								}(e)) return NaN;
-							if (yt(e)) {
+							if (_t(e)) {
 								var t = "function" == typeof e.valueOf ? e.valueOf() : e;
-								e = yt(t) ? t + "" : t
+								e = _t(t) ? t + "" : t
 							}
 							if ("string" != typeof e) return 0 === e ? e : +e;
-							e = e.replace(Ze, "");
-							var r = Xe.test(e);
-							return r || Qe.test(e) ? tt(e.slice(2), r ? 2 : 8) : Ye.test(e) ? NaN : +e
+							e = e.replace(et, "");
+							var r = rt.test(e);
+							return r || nt.test(e) ? it(e.slice(2), r ? 2 : 8) : tt.test(e) ? NaN : +e
 						}(e)) === 1 / 0 || e === -1 / 0) {
 						return 17976931348623157e292 * (e < 0 ? -1 : 1)
 					}
@@ -1408,38 +1444,38 @@ var vt = function(e, t, r, n) {
 			return t == t ? r ? t - r : t : 0
 		}(r) : 0;
 		var i = e.length;
-		return r < 0 && (r = pt(i + r, 0)),
+		return r < 0 && (r = ht(i + r, 0)),
 			function(e) {
-				return "string" == typeof e || !mt(e) && wt(e) && "[object String]" == ct.call(e)
+				return "string" == typeof e || !vt(e) && St(e) && "[object String]" == pt.call(e)
 			}(e) ? r <= i && e.indexOf(t, r) > -1 : !!i && function(e, t, r) {
 				if (t != t) return function(e, t, r, n) {
 					for (var o = e.length, i = r + (n ? 1 : -1); n ? i-- : ++i < o;)
 						if (t(e[i], i, e)) return i;
 					return -1
-				}(e, rt, r);
+				}(e, at, r);
 				for (var n = r - 1, o = e.length; ++n < o;)
 					if (e[n] === t) return n;
 				return -1
 			}(e, t, r) > -1
 	},
-	bt = Object.prototype.toString;
-var St = function(e) {
+	kt = Object.prototype.toString;
+var xt = function(e) {
 		return !0 === e || !1 === e || function(e) {
 			return !!e && "object" == typeof e
-		}(e) && "[object Boolean]" == bt.call(e)
+		}(e) && "[object Boolean]" == kt.call(e)
 	},
-	_t = /^\s+|\s+$/g,
-	Et = /^[-+]0x[0-9a-f]+$/i,
-	xt = /^0b[01]+$/i,
-	jt = /^0o[0-7]+$/i,
-	kt = parseInt,
-	Tt = Object.prototype.toString;
+	jt = /^\s+|\s+$/g,
+	Tt = /^[-+]0x[0-9a-f]+$/i,
+	Ot = /^0b[01]+$/i,
+	It = /^0o[0-7]+$/i,
+	Ct = parseInt,
+	At = Object.prototype.toString;
 
-function Ot(e) {
+function Rt(e) {
 	var t = typeof e;
 	return !!e && ("object" == t || "function" == t)
 }
-var At = function(e) {
+var Pt = function(e) {
 		return "number" == typeof e && e == function(e) {
 			var t = function(e) {
 					if (!e) return 0 === e ? e : 0;
@@ -1448,16 +1484,16 @@ var At = function(e) {
 							if (function(e) {
 									return "symbol" == typeof e || function(e) {
 										return !!e && "object" == typeof e
-									}(e) && "[object Symbol]" == Tt.call(e)
+									}(e) && "[object Symbol]" == At.call(e)
 								}(e)) return NaN;
-							if (Ot(e)) {
+							if (Rt(e)) {
 								var t = "function" == typeof e.valueOf ? e.valueOf() : e;
-								e = Ot(t) ? t + "" : t
+								e = Rt(t) ? t + "" : t
 							}
 							if ("string" != typeof e) return 0 === e ? e : +e;
-							e = e.replace(_t, "");
-							var r = xt.test(e);
-							return r || jt.test(e) ? kt(e.slice(2), r ? 2 : 8) : Et.test(e) ? NaN : +e
+							e = e.replace(jt, "");
+							var r = Ot.test(e);
+							return r || It.test(e) ? Ct(e.slice(2), r ? 2 : 8) : Tt.test(e) ? NaN : +e
 						}(e)) === 1 / 0 || e === -1 / 0) {
 						return 17976931348623157e292 * (e < 0 ? -1 : 1)
 					}
@@ -1467,53 +1503,53 @@ var At = function(e) {
 			return t == t ? r ? t - r : t : 0
 		}(e)
 	},
-	Rt = Object.prototype.toString;
-var Pt = function(e) {
+	$t = Object.prototype.toString;
+var Nt = function(e) {
 	return "number" == typeof e || function(e) {
 		return !!e && "object" == typeof e
-	}(e) && "[object Number]" == Rt.call(e)
+	}(e) && "[object Number]" == $t.call(e)
 };
-var It = Function.prototype,
-	$t = Object.prototype,
-	Ct = It.toString,
-	Nt = $t.hasOwnProperty,
-	Bt = Ct.call(Object),
-	Dt = $t.toString,
-	Mt = function(e, t) {
+var Bt = Function.prototype,
+	Mt = Object.prototype,
+	Dt = Bt.toString,
+	Lt = Mt.hasOwnProperty,
+	Kt = Dt.call(Object),
+	Vt = Mt.toString,
+	qt = function(e, t) {
 		return function(r) {
 			return e(t(r))
 		}
 	}(Object.getPrototypeOf, Object);
-var Vt = function(e) {
+var Ut = function(e) {
 		if (! function(e) {
 				return !!e && "object" == typeof e
-			}(e) || "[object Object]" != Dt.call(e) || function(e) {
+			}(e) || "[object Object]" != Vt.call(e) || function(e) {
 				var t = !1;
 				if (null != e && "function" != typeof e.toString) try {
 					t = !!(e + "")
 				} catch (e) {}
 				return t
 			}(e)) return !1;
-		var t = Mt(e);
+		var t = qt(e);
 		if (null === t) return !0;
-		var r = Nt.call(t, "constructor") && t.constructor;
-		return "function" == typeof r && r instanceof r && Ct.call(r) == Bt
+		var r = Lt.call(t, "constructor") && t.constructor;
+		return "function" == typeof r && r instanceof r && Dt.call(r) == Kt
 	},
-	qt = Object.prototype.toString,
-	Kt = Array.isArray;
-var Lt = function(e) {
-		return "string" == typeof e || !Kt(e) && function(e) {
+	Ht = Object.prototype.toString,
+	Ft = Array.isArray;
+var Jt = function(e) {
+		return "string" == typeof e || !Ft(e) && function(e) {
 			return !!e && "object" == typeof e
-		}(e) && "[object String]" == qt.call(e)
+		}(e) && "[object String]" == Ht.call(e)
 	},
-	Ht = /^\s+|\s+$/g,
-	Ut = /^[-+]0x[0-9a-f]+$/i,
-	Jt = /^0b[01]+$/i,
-	Ft = /^0o[0-7]+$/i,
-	Gt = parseInt,
-	zt = Object.prototype.toString;
+	Gt = /^\s+|\s+$/g,
+	zt = /^[-+]0x[0-9a-f]+$/i,
+	Wt = /^0b[01]+$/i,
+	Zt = /^0o[0-7]+$/i,
+	Yt = parseInt,
+	Xt = Object.prototype.toString;
 
-function Wt(e, t) {
+function Qt(e, t) {
 	var r;
 	if ("function" != typeof t) throw new TypeError("Expected a function");
 	return e = function(e) {
@@ -1524,16 +1560,16 @@ function Wt(e, t) {
 							if (function(e) {
 									return "symbol" == typeof e || function(e) {
 										return !!e && "object" == typeof e
-									}(e) && "[object Symbol]" == zt.call(e)
+									}(e) && "[object Symbol]" == Xt.call(e)
 								}(e)) return NaN;
-							if (Zt(e)) {
+							if (er(e)) {
 								var t = "function" == typeof e.valueOf ? e.valueOf() : e;
-								e = Zt(t) ? t + "" : t
+								e = er(t) ? t + "" : t
 							}
 							if ("string" != typeof e) return 0 === e ? e : +e;
-							e = e.replace(Ht, "");
-							var r = Jt.test(e);
-							return r || Ft.test(e) ? Gt(e.slice(2), r ? 2 : 8) : Ut.test(e) ? NaN : +e
+							e = e.replace(Gt, "");
+							var r = Wt.test(e);
+							return r || Zt.test(e) ? Yt(e.slice(2), r ? 2 : 8) : zt.test(e) ? NaN : +e
 						}(e)) === 1 / 0 || e === -1 / 0) {
 						return 17976931348623157e292 * (e < 0 ? -1 : 1)
 					}
@@ -1547,88 +1583,88 @@ function Wt(e, t) {
 		}
 }
 
-function Zt(e) {
+function er(e) {
 	var t = typeof e;
 	return !!e && ("object" == t || "function" == t)
 }
-var Yt = function(e) {
-		return Wt(2, e)
+var tr = function(e) {
+		return Qt(2, e)
 	},
-	Xt = ["RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "HS256", "HS384", "HS512", "none"];
-Fe && Xt.splice(3, 0, "PS256", "PS384", "PS512");
-var Qt = {
+	rr = ["RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "HS256", "HS384", "HS512", "none"];
+Ze && rr.splice(3, 0, "PS256", "PS384", "PS512");
+var nr = {
 		expiresIn: {
 			isValid: function(e) {
-				return At(e) || Lt(e) && e
+				return Pt(e) || Jt(e) && e
 			},
 			message: '"expiresIn" should be a number of seconds or string representing a timespan'
 		},
 		notBefore: {
 			isValid: function(e) {
-				return At(e) || Lt(e) && e
+				return Pt(e) || Jt(e) && e
 			},
 			message: '"notBefore" should be a number of seconds or string representing a timespan'
 		},
 		audience: {
 			isValid: function(e) {
-				return Lt(e) || Array.isArray(e)
+				return Jt(e) || Array.isArray(e)
 			},
 			message: '"audience" must be a string or array'
 		},
 		algorithm: {
-			isValid: vt.bind(null, Xt),
+			isValid: Et.bind(null, rr),
 			message: '"algorithm" must be a valid string enum value'
 		},
 		header: {
-			isValid: Vt,
+			isValid: Ut,
 			message: '"header" must be an object'
 		},
 		encoding: {
-			isValid: Lt,
+			isValid: Jt,
 			message: '"encoding" must be a string'
 		},
 		issuer: {
-			isValid: Lt,
+			isValid: Jt,
 			message: '"issuer" must be a string'
 		},
 		subject: {
-			isValid: Lt,
+			isValid: Jt,
 			message: '"subject" must be a string'
 		},
 		jwtid: {
-			isValid: Lt,
+			isValid: Jt,
 			message: '"jwtid" must be a string'
 		},
 		noTimestamp: {
-			isValid: St,
+			isValid: xt,
 			message: '"noTimestamp" must be a boolean'
 		},
 		keyid: {
-			isValid: Lt,
+			isValid: Jt,
 			message: '"keyid" must be a string'
 		},
 		mutatePayload: {
-			isValid: St,
+			isValid: xt,
 			message: '"mutatePayload" must be a boolean'
 		}
 	},
-	er = {
+	or = {
 		iat: {
-			isValid: Pt,
+			isValid: Nt,
 			message: '"iat" should be a number of seconds'
 		},
 		exp: {
-			isValid: Pt,
+			isValid: Nt,
 			message: '"exp" should be a number of seconds'
 		},
 		nbf: {
-			isValid: Pt,
+			isValid: Nt,
 			message: '"nbf" should be a number of seconds'
 		}
 	};
 
-function tr(e, t, r, n) {
-	if (!Vt(r)) throw new Error('Expected "' + n + '" to be a plain object.');
+function ir(e, t, r, n) {
+	if (!Ut(r)) throw new Error('Expected "' + n + '" to be a plain object.');
 	Object.keys(r).forEach((function(o) {
 		var i = e[o];
 		if (i) {
@@ -1636,96 +1672,96 @@ function tr(e, t, r, n) {
 		} else if (!t) throw new Error('"' + o + '" is not allowed in "' + n + '"')
 	}))
 }
-var rr = {
+var ar = {
 		audience: "aud",
 		issuer: "iss",
 		subject: "sub",
 		jwtid: "jti"
 	},
-	nr = ["expiresIn", "notBefore", "noTimestamp", "audience", "issuer", "subject", "jwtid"],
-	or = function(e, t, r, n) {
+	sr = ["expiresIn", "notBefore", "noTimestamp", "audience", "issuer", "subject", "jwtid"],
+	cr = function(e, t, r, n) {
 		var o;
 		if ("function" != typeof r || n || (n = r, r = {}), r || (r = {}), r = Object.assign({}, r), o = n || function(e, t) {
 				if (e) throw e;
 				return t
-			}, r.clockTimestamp && "number" != typeof r.clockTimestamp) return o(new $e("clockTimestamp must be a number"));
-		if (void 0 !== r.nonce && ("string" != typeof r.nonce || "" === r.nonce.trim())) return o(new $e(
+			}, r.clockTimestamp && "number" != typeof r.clockTimestamp) return o(new Me("clockTimestamp must be a number"));
+		if (void 0 !== r.nonce && ("string" != typeof r.nonce || "" === r.nonce.trim())) return o(new Me(
 			"nonce must be a non-empty string"));
 		var i = r.clockTimestamp || Math.floor(Date.now() / 1e3);
-		if (!e) return o(new $e("jwt must be provided"));
-		if ("string" != typeof e) return o(new $e("jwt must be a string"));
-		var s, a = e.split(".");
-		if (3 !== a.length) return o(new $e("jwt malformed"));
+		if (!e) return o(new Me("jwt must be provided"));
+		if ("string" != typeof e) return o(new Me("jwt must be a string"));
+		var a, s = e.split(".");
+		if (3 !== s.length) return o(new Me("jwt malformed"));
 		try {
-			s = Pe(e, {
+			a = Ne(e, {
 				complete: !0
 			})
 		} catch (e) {
 			return o(e)
 		}
-		if (!s) return o(new $e("invalid token"));
-		var c, u = s.header;
+		if (!a) return o(new Me("invalid token"));
+		var c, u = a.header;
 		if ("function" == typeof t) {
-			if (!n) return o(new $e("verify must be called asynchronous if secret or public key is provided as a callback"));
+			if (!n) return o(new Me("verify must be called asynchronous if secret or public key is provided as a callback"));
 			c = t
 		} else c = function(e, r) {
 			return r(null, t)
 		};
 		return c(u, (function(t, n) {
-			if (t) return o(new $e("error in secret or public key callback: " + t.message));
-			var c, f = "" !== a[2].trim();
-			if (!f && n) return o(new $e("jwt signature is required"));
-			if (f && !n) return o(new $e("secret or public key must be provided"));
+			if (t) return o(new Me("error in secret or public key callback: " + t.message));
+			var c, f = "" !== s[2].trim();
+			if (!f && n) return o(new Me("jwt signature is required"));
+			if (f && !n) return o(new Me("secret or public key must be provided"));
 			if (f || r.algorithms || (r.algorithms = ["none"]), r.algorithms || (r.algorithms = ~n.toString().indexOf(
-					"BEGIN CERTIFICATE") || ~n.toString().indexOf("BEGIN PUBLIC KEY") ? Ge : ~n.toString().indexOf(
-					"BEGIN RSA PUBLIC KEY") ? ze : We), !~r.algorithms.indexOf(s.header.alg)) return o(new $e("invalid algorithm"));
+					"BEGIN CERTIFICATE") || ~n.toString().indexOf("BEGIN PUBLIC KEY") ? Ye : ~n.toString().indexOf(
+					"BEGIN RSA PUBLIC KEY") ? Xe : Qe), !~r.algorithms.indexOf(a.header.alg)) return o(new Me("invalid algorithm"));
 			try {
-				c = Re.verify(e, s.header.alg, n)
+				c = $e.verify(e, a.header.alg, n)
 			} catch (e) {
 				return o(e)
 			}
-			if (!c) return o(new $e("invalid signature"));
-			var p = s.payload;
-			if (void 0 !== p.nbf && !r.ignoreNotBefore) {
-				if ("number" != typeof p.nbf) return o(new $e("invalid nbf value"));
-				if (p.nbf > i + (r.clockTolerance || 0)) return o(new Ne("jwt not active", new Date(1e3 * p.nbf)))
+			if (!c) return o(new Me("invalid signature"));
+			var d = a.payload;
+			if (void 0 !== d.nbf && !r.ignoreNotBefore) {
+				if ("number" != typeof d.nbf) return o(new Me("invalid nbf value"));
+				if (d.nbf > i + (r.clockTolerance || 0)) return o(new Le("jwt not active", new Date(1e3 * d.nbf)))
 			}
-			if (void 0 !== p.exp && !r.ignoreExpiration) {
-				if ("number" != typeof p.exp) return o(new $e("invalid exp value"));
-				if (i >= p.exp + (r.clockTolerance || 0)) return o(new De("jwt expired", new Date(1e3 * p.exp)))
+			if (void 0 !== d.exp && !r.ignoreExpiration) {
+				if ("number" != typeof d.exp) return o(new Me("invalid exp value"));
+				if (i >= d.exp + (r.clockTolerance || 0)) return o(new Ve("jwt expired", new Date(1e3 * d.exp)))
 			}
 			if (r.audience) {
-				var l = Array.isArray(r.audience) ? r.audience : [r.audience];
-				if (!(Array.isArray(p.aud) ? p.aud : [p.aud]).some((function(e) {
-						return l.some((function(t) {
+				var p = Array.isArray(r.audience) ? r.audience : [r.audience];
+				if (!(Array.isArray(d.aud) ? d.aud : [d.aud]).some((function(e) {
+						return p.some((function(t) {
 							return t instanceof RegExp ? t.test(e) : t === e
 						}))
-					}))) return o(new $e("jwt audience invalid. expected: " + l.join(" or ")))
+					}))) return o(new Me("jwt audience invalid. expected: " + p.join(" or ")))
 			}
-			if (r.issuer && ("string" == typeof r.issuer && p.iss !== r.issuer || Array.isArray(r.issuer) && -1 === r.issuer.indexOf(
-					p.iss))) return o(new $e("jwt issuer invalid. expected: " + r.issuer));
-			if (r.subject && p.sub !== r.subject) return o(new $e("jwt subject invalid. expected: " + r.subject));
-			if (r.jwtid && p.jti !== r.jwtid) return o(new $e("jwt jwtid invalid. expected: " + r.jwtid));
-			if (r.nonce && p.nonce !== r.nonce) return o(new $e("jwt nonce invalid. expected: " + r.nonce));
+			if (r.issuer && ("string" == typeof r.issuer && d.iss !== r.issuer || Array.isArray(r.issuer) && -1 === r.issuer.indexOf(
+					d.iss))) return o(new Me("jwt issuer invalid. expected: " + r.issuer));
+			if (r.subject && d.sub !== r.subject) return o(new Me("jwt subject invalid. expected: " + r.subject));
+			if (r.jwtid && d.jti !== r.jwtid) return o(new Me("jwt jwtid invalid. expected: " + r.jwtid));
+			if (r.nonce && d.nonce !== r.nonce) return o(new Me("jwt nonce invalid. expected: " + r.nonce));
 			if (r.maxAge) {
-				if ("number" != typeof p.iat) return o(new $e("iat required when maxAge is specified"));
-				var d = Ue(r.maxAge, p.iat);
-				if (void 0 === d) return o(new $e(
+				if ("number" != typeof d.iat) return o(new Me("iat required when maxAge is specified"));
+				var l = ze(r.maxAge, d.iat);
+				if (void 0 === l) return o(new Me(
 					'"maxAge" should be a number of seconds or string representing a timespan eg: "1d", "20h", 60'));
-				if (i >= d + (r.clockTolerance || 0)) return o(new De("maxAge exceeded", new Date(1e3 * d)))
+				if (i >= l + (r.clockTolerance || 0)) return o(new Ve("maxAge exceeded", new Date(1e3 * l)))
 			}
 			if (!0 === r.complete) {
-				var h = s.signature;
+				var m = a.signature;
 				return o(null, {
 					header: u,
-					payload: p,
-					signature: h
+					payload: d,
+					signature: m
 				})
 			}
-			return o(null, p)
+			return o(null, d)
 		}))
 	},
-	ir = function(e, t, r, n) {
+	ur = function(e, t, r, n) {
 		"function" == typeof r ? (n = r, r = {}) : r = r || {};
 		var o = "object" == typeof e && !Buffer.isBuffer(e),
 			i = Object.assign({
@@ -1734,73 +1770,73 @@ var rr = {
 				kid: r.keyid
 			}, r.header);
 
-		function s(e) {
+		function a(e) {
 			if (n) return n(e);
 			throw e
 		}
-		if (!t && "none" !== r.algorithm) return s(new Error("secretOrPrivateKey must have a value"));
-		if (void 0 === e) return s(new Error("payload is required"));
+		if (!t && "none" !== r.algorithm) return a(new Error("secretOrPrivateKey must have a value"));
+		if (void 0 === e) return a(new Error("payload is required"));
 		if (o) {
 			try {
 				! function(e) {
-					tr(er, !0, e, "payload")
+					ir(or, !0, e, "payload")
 				}(e)
 			} catch (e) {
-				return s(e)
+				return a(e)
 			}
 			r.mutatePayload || (e = Object.assign({}, e))
 		} else {
-			var a = nr.filter((function(e) {
+			var s = sr.filter((function(e) {
 				return void 0 !== r[e]
 			}));
-			if (a.length > 0) return s(new Error("invalid " + a.join(",") + " option for " + typeof e + " payload"))
+			if (s.length > 0) return a(new Error("invalid " + s.join(",") + " option for " + typeof e + " payload"))
 		}
-		if (void 0 !== e.exp && void 0 !== r.expiresIn) return s(new Error(
+		if (void 0 !== e.exp && void 0 !== r.expiresIn) return a(new Error(
 			'Bad "options.expiresIn" option the payload already has an "exp" property.'));
-		if (void 0 !== e.nbf && void 0 !== r.notBefore) return s(new Error(
+		if (void 0 !== e.nbf && void 0 !== r.notBefore) return a(new Error(
 			'Bad "options.notBefore" option the payload already has an "nbf" property.'));
 		try {
 			! function(e) {
-				tr(Qt, !1, e, "options")
+				ir(nr, !1, e, "options")
 			}(r)
 		} catch (e) {
-			return s(e)
+			return a(e)
 		}
 		var c = e.iat || Math.floor(Date.now() / 1e3);
 		if (r.noTimestamp ? delete e.iat : o && (e.iat = c), void 0 !== r.notBefore) {
 			try {
-				e.nbf = Ue(r.notBefore, c)
+				e.nbf = ze(r.notBefore, c)
 			} catch (e) {
-				return s(e)
+				return a(e)
 			}
-			if (void 0 === e.nbf) return s(new Error(
+			if (void 0 === e.nbf) return a(new Error(
 				'"notBefore" should be a number of seconds or string representing a timespan eg: "1d", "20h", 60'))
 		}
 		if (void 0 !== r.expiresIn && "object" == typeof e) {
 			try {
-				e.exp = Ue(r.expiresIn, c)
+				e.exp = ze(r.expiresIn, c)
 			} catch (e) {
-				return s(e)
+				return a(e)
 			}
-			if (void 0 === e.exp) return s(new Error(
+			if (void 0 === e.exp) return a(new Error(
 				'"expiresIn" should be a number of seconds or string representing a timespan eg: "1d", "20h", 60'))
 		}
-		Object.keys(rr).forEach((function(t) {
-			var n = rr[t];
+		Object.keys(ar).forEach((function(t) {
+			var n = ar[t];
 			if (void 0 !== r[t]) {
-				if (void 0 !== e[n]) return s(new Error('Bad "options.' + t + '" option. The payload already has an "' + n +
+				if (void 0 !== e[n]) return a(new Error('Bad "options.' + t + '" option. The payload already has an "' + n +
 					'" property.'));
 				e[n] = r[t]
 			}
 		}));
 		var u = r.encoding || "utf8";
-		if ("function" != typeof n) return Re.sign({
+		if ("function" != typeof n) return $e.sign({
 			header: i,
 			payload: e,
 			secret: t,
 			encoding: u
 		});
-		n = n && Yt(n), Re.createSign({
+		n = n && tr(n), $e.createSign({
 			header: i,
 			privateKey: t,
 			payload: e,
@@ -1810,69 +1846,200 @@ var rr = {
 		}))
 	};
 
-function sr() {
-	const e = t.createHash("md5");
-	return e.update(__ctx__.CLIENTUA), e.digest("hex")
+function fr() {
+	const e = t.createHash("md5"),
+		r = /MicroMessenger/i.test(__ctx__.CLIENTUA) ? __ctx__.CLIENTUA.split(" Process/appbrand")[0] : __ctx__.CLIENTUA;
+	return e.update(r), e.digest("hex")
 }
-const ar = {
-		createToken: function(e) {
-			const t = k();
-			return {
-				token: ir({
-					uid: e._id,
-					clientId: sr()
-				}, t.tokenSecret, {
-					expiresIn: t.tokenExpiresIn
-				}),
-				tokenExpired: Date.now() + 1e3 * t.tokenExpiresIn
-			}
-		},
-		refreshToken: function() {},
-		checkToken: async function(e) {
-			const t = k();
-			try {
-				const r = or(e, t.tokenSecret);
-				if (console.log(r), r.clientId !== sr()) return {
-					code: 1302,
-					msg: "token不合法，请重新登录"
-				};
-				const n = await j.doc(r.uid).get();
-				if (!n.data || 0 === n.data.length || !n.data[0].token) return {
-					code: 1302,
-					msg: "token不合法，请重新登录"
-				};
-				let o = n.data[0].token;
-				return "string" == typeof o && (o = [o]), -1 === o.indexOf(e) ? {
-					code: 1302,
-					msg: "token不合法，请重新登录"
-				} : (_("checkToken payload", r), r)
-			} catch (e) {
-				return "TokenExpiredError" === e.name ? {
-					code: 1301,
-					msg: "token已过期，请重新登录",
-					err: e
-				} : {
-					code: 1302,
-					msg: "非法token",
-					err: e
-				}
-			}
-		},
-		getExpiredToken(e) {
-			const t = k(),
-				r = [];
-			return e.forEach(e => {
-				try {
-					or(e, t.tokenSecret)
-				} catch (t) {
-					r.push(e)
-				}
-			}), r
+const dr = {
+	createToken: function(e) {
+		const t = I(),
+			r = {
+				uid: e._id
+			};
+		t.bindTokenToDevice && (r.clientId = fr());
+		return {
+			token: ur(r, t.tokenSecret, {
+				expiresIn: t.tokenExpiresIn
+			}),
+			tokenExpired: Date.now() + 1e3 * t.tokenExpiresIn
 		}
 	},
-	cr = uniCloud.database();
-const ur = uniCloud.database();
-async function fr({
+	decryptToken: async function(e) {
+		return Ne(e)
+	},
+	refreshToken: async function(e) {
+		const r = Ne(e)
+		if (!r) return {
+			code: 30204,
+			msg: "非法token"
+		}
+		const n = await j.doc(r.uid).get();
+		if (!n.data || 0 === n.data.length || !n.data[0].token) return {
+			code: 30202,
+			msg: "token不合法，请重新登录"
+		};
+		const o = n.data[0];
+		if (1 === o.status) return {
+			code: 10001,
+			msg: "账号已禁用"
+		};
+		let i = o.token;
+		var ti = i.indexOf(e)
+		const ed = await this.createToken({
+			_id: r.uid
+		})
+		if ("string" == typeof i && (i = [i]), -1 === ti) {
+			return {
+				code: 30204,
+				msg: "非法token"
+			}
+		} else {
+			// 替换旧的token
+			i.splice(ti, 1, ed.token);
+			await j.doc(r.uid).update({
+				last_login_date: (new Date).getTime(),
+				last_login_ip: __ctx__.CLIENTIP,
+				token: i
+			});
+			return {
+				code: 0,
+				msg: "token刷新成功",
+				data: ed
+			}
+		}
+	},
+	checkToken: async function(e) {
+		const t = I();
+		try {
+			const r = cr(e, t.tokenSecret);
+			if (t.bindTokenToDevice && r.clientId !== fr()) return {
+				code: 30201,
+				msg: "token不合法，请重新登录"
+			};
+			const n = await j.doc(r.uid).get();
+			if (!n.data || 0 === n.data.length || !n.data[0].token) return {
+				code: 30202,
+				msg: "token不合法，请重新登录"
+			};
+			const o = n.data[0];
+			if (1 === o.status) return {
+				code: 10001,
+				msg: "账号已禁用"
+			};
+			let i = o.token;
+			return "string" == typeof i && (i = [i]), -1 === i.indexOf(e) ? {
+				code: 30202,
+				msg: "token不合法，请重新登录"
+			} : (S("checkToken payload", r), {
+				code: 0,
+				msg: "token校验通过",
+				...r,
+				userInfo: o
+			})
+		} catch (e) {
+			return "TokenExpiredError" === e.name ? {
+				code: 30203,
+				msg: "token已过期，请重新登录",
+				err: e
+			} : {
+				code: 30204,
+				msg: "非法token",
+				err: e
+			}
+		}
+	},
+	getExpiredToken(e) {
+		const t = I(),
+			r = [];
+		return e.forEach(e => {
+			try {
+				cr(e, t.tokenSecret)
+			} catch (t) {
+				r.push(e)
+			}
+		}), r
+	}
+};
+
+function pr(e = 6) {
+	const t = ["2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N",
+		"P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+	];
+	let r = "";
+	for (let n = 0; n < e; n++) r += t[Math.floor(Math.random() * t.length)];
+	return r
+}
+async function lr({
+	inviteCode: e
+}) {
+	let t, r = 10;
+	e ? (r = 1, t = e) : t = pr();
+	let n = !1;
+	try {
+		for (; r > 0 && !n;) {
+			r -= 1;
+			if (0 === (await j.where({
+					invite_code: t
+				}).count()).total) {
+				n = !0;
+				break
+			}
+			t = pr()
+		}
+		return n ? {
+			code: 0,
+			inviteCode: t
+		} : e ? {
+			code: 80401,
+			msg: "邀请码重复，设置失败"
+		} : {
+			code: 80402,
+			msg: "邀请码设置失败稍后再试"
+		}
+	} catch (e) {
+		return {
+			code: 90001,
+			msg: "数据库读写异常"
+		}
+	}
+}
+async function mr(e) {
+	let t;
+	const {
+		my_invite_code: r
+	} = e;
+	if (!I().autoSetInviteCode && !r) return t = await j.add(e), {
+		code: 0,
+		msg: "注册成功",
+		result: t
+	};
+	const n = await lr({
+		inviteCode: r
+	});
+	return n.code > 0 ? n : (e.my_invite_code = n.inviteCode, t = await j.add(e), {
+		code: 0,
+		msg: "邀请码设置成功",
+		result: t
+	})
+}
+const hr = uniCloud.database();
+async function gr(e) {
+	if (1 === e.status) return {
+		code: 10001,
+		msg: "账号已禁用"
+	};
+	S("过期token清理");
+	let t = e.token || [];
+	"string" == typeof t && (t = [t]);
+	const r = dr.getExpiredToken(t);
+	return t = t.filter(e => -1 === r.indexOf(e)), e.token = t, {
+		code: 0,
+		user: e
+	}
+}
+const yr = uniCloud.database();
+async function wr({
 	name: e,
 	url: t,
 	data: r,
@@ -1880,11 +2047,11 @@ async function fr({
 	defaultOptions: o
 }) {
 	let i = {};
-	const s = b(Object.assign({}, r));
-	s && s.access_token && delete s.access_token;
+	const a = b(Object.assign({}, r));
+	a && a.access_token && delete a.access_token;
 	try {
 		n = Object.assign({}, o, n, {
-			data: s
+			data: a
 		}), i = await uniCloud.httpclient.request(t, n)
 	} catch (t) {
 		return function(e, t) {
@@ -1894,17 +2061,17 @@ async function fr({
 			})
 		}(e, t)
 	}
-	let a = i.data;
+	let s = i.data;
 	const u = i.headers["content-type"];
-	if (!Buffer.isBuffer(a) || 0 !== u.indexOf("text/plain") && 0 !== u.indexOf("application/json")) Buffer.isBuffer(a) &&
-		(a = {
-			buffer: a,
+	if (!Buffer.isBuffer(s) || 0 !== u.indexOf("text/plain") && 0 !== u.indexOf("application/json")) Buffer.isBuffer(s) &&
+		(s = {
+			buffer: s,
 			contentType: u
 		});
 	else try {
-		a = JSON.parse(a.toString())
+		s = JSON.parse(s.toString())
 	} catch (e) {
-		a = a.toString()
+		s = s.toString()
 	}
 	return v(function(e, t) {
 		if (t.errcode) throw new c({
@@ -1915,20 +2082,20 @@ async function fr({
 			errMsg: e + " ok",
 			errCode: 0
 		}
-	}(e, a || {
+	}(e, s || {
 		errCode: -2,
 		errMsg: "Request failed"
 	}))
 }
 
-function pr(e, t) {
+function vr(e, t) {
 	let r = "";
 	if (t && t.accessToken) {
 		r = `${e.indexOf("?")>-1?"&":"?"}access_token=${t.accessToken}`
 	}
 	return `${e}${r}`
 }
-class lr {
+class br {
 	constructor(e) {
 		this.options = Object.assign({
 			baseUrl: "https://api.weixin.qq.com",
@@ -1947,9 +2114,9 @@ class lr {
 			dataAsQueryString: !0,
 			timeout: this.options.timeout
 		};
-		return await fr({
+		return await wr({
 			name: "auth." + e,
-			url: `${this.options.baseUrl}${pr(t,r)}`,
+			url: `${this.options.baseUrl}${vr(t,r)}`,
 			data: r,
 			options: n,
 			defaultOptions: o
@@ -1980,18 +2147,18 @@ class lr {
 		})
 	}
 }
-const dr = {
+const _r = {
 	RSA: "RSA-SHA1",
 	RSA2: "RSA-SHA256"
 };
-var hr = {
+var Sr = {
 	code2Session: {
 		returnValue: {
 			openid: "userId"
 		}
 	}
 };
-class mr extends class {
+class Er extends class {
 	constructor(e = {}) {
 		if (!e.appId) throw new Error("appId required");
 		if (!e.privateKey) throw new Error("privateKey required");
@@ -2035,18 +2202,18 @@ class mr extends class {
 			charset: this.options.charset,
 			version: this.options.version,
 			signType: this.options.signType,
-			timestamp: S((i = this.options.timeOffset, new Date(Date.now() + 6e4 * ((new Date).getTimezoneOffset() + 60 * (i ||
+			timestamp: _((i = this.options.timeOffset, new Date(Date.now() + 6e4 * ((new Date).getTimezoneOffset() + 60 * (i ||
 				0)))))
 		}, r);
 		var i;
 		n && (o.bizContent = JSON.stringify(b(n)));
-		const s = b(o),
-			a = Object.keys(s).sort().map(e => {
-				let t = s[e];
+		const a = b(o),
+			s = Object.keys(a).sort().map(e => {
+				let t = a[e];
 				return "[object String]" !== Array.prototype.toString.call(t) && (t = JSON.stringify(t)), `${e}=${t}`
 			}).join("&"),
-			c = t.createSign(dr[this.options.signType]).update(a, "utf8").sign(this.options.privateKey, "base64");
-		return Object.assign(s, {
+			c = t.createSign(_r[this.options.signType]).update(s, "utf8").sign(this.options.privateKey, "base64");
+		return Object.assign(a, {
 			sign: c
 		})
 	}
@@ -2057,21 +2224,21 @@ class mr extends class {
 				execParams: i
 			} = this._formatUrl(this.options.gateway, n),
 			{
-				status: s,
-				data: a
+				status: a,
+				data: s
 			} = await uniCloud.httpclient.request(o, {
 				method: "POST",
 				data: i,
 				dataType: "text",
 				timeout: this.options.timeout
 			});
-		if (200 !== s) throw new Error("request fail");
-		const c = JSON.parse(a),
+		if (200 !== a) throw new Error("request fail");
+		const c = JSON.parse(s),
 			u = e.replace(/\./g, "_") + "_response",
 			f = c[u],
-			p = c.error_response;
+			d = c.error_response;
 		if (f) {
-			if (!r.validateSign || this._checkResponseSign(a, u)) {
+			if (!r.validateSign || this._checkResponseSign(s, u)) {
 				if (!f.code || "10000" === f.code) {
 					return {
 						errCode: 0,
@@ -2084,7 +2251,7 @@ class mr extends class {
 			}
 			throw new Error("返回结果签名错误")
 		}
-		if (p) throw new Error(p.sub_msg || p.msg || "接口返回错误");
+		if (d) throw new Error(d.sub_msg || d.msg || "接口返回错误");
 		throw new Error("request fail")
 	}
 	_checkResponseSign(e, r) {
@@ -2093,7 +2260,7 @@ class mr extends class {
 		if (!e) return !1;
 		const n = this._getSignStr(e, r),
 			o = JSON.parse(e).sign,
-			i = t.createVerify(dr[this.options.signType]);
+			i = t.createVerify(_r[this.options.signType]);
 		return i.update(n, "utf8"), i.verify(this.options.alipayPublicKey, o, "base64")
 	}
 	_getSignStr(e, t) {
@@ -2109,7 +2276,7 @@ class mr extends class {
 			return "[object String]" !== Array.prototype.toString.call(r) && (r = JSON.stringify(r)),
 				`${t}=${decodeURIComponent(r)}`
 		}).join("&");
-		return t.createVerify(dr[n]).update(o, "utf8").verify(this.options.alipayPublicKey, r, "base64")
+		return t.createVerify(_r[n]).update(o, "utf8").verify(this.options.alipayPublicKey, r, "base64")
 	}
 	_checkNotifySign(e) {
 		const t = e.sign;
@@ -2125,13 +2292,13 @@ class mr extends class {
 		let t;
 		for (const r in e.headers) "content-type" === r.toLowerCase() && (t = e.headers[r]);
 		if (!1 !== e.isBase64Encoded && -1 === t.indexOf("application/x-www-form-urlencoded")) throw new Error("通知格式不正确");
-		const r = a.parse(e.body);
+		const r = s.parse(e.body);
 		if (this._checkNotifySign(r)) return v(r);
 		throw new Error("通知验签未通过")
 	}
 } {
 	constructor(e) {
-		super(e), this._protocols = hr
+		super(e), this._protocols = Sr
 	}
 	async code2Session(e) {
 		return await this._exec("alipay.system.oauth.token", {
@@ -2140,38 +2307,127 @@ class mr extends class {
 		})
 	}
 }
-var gr = function(e = {}) {
-		return e.clientType = e.clientType || __ctx__.PLATFORM, e.appId = e.appid, e.secret = e.appsecret, x(lr, e)
+var kr = function(e = {}) {
+		return e.clientType = e.clientType || __ctx__.PLATFORM, e.appId = e.appid, e.secret = e.appsecret, k(br, e)
 	},
-	yr = function(e = {}) {
-		return e.clientType = e.clientType || __ctx__.PLATFORM, e.appId = e.appid, x(mr, e)
+	xr = function(e = {}) {
+		return e.clientType = e.clientType || __ctx__.PLATFORM, e.appId = e.appid, k(Er, e)
 	};
 
-function wr() {
-	const e = k(),
-		t = __ctx__.PLATFORM;
-	if (!e.oauth || !e.oauth.weixin) throw new Error(`请在公用模块uni-id的config.json内添加${t}平台微信登录配置项`);
-	["appid", "appsecret"].forEach(r => {
-		if (!e.oauth.weixin[r]) throw new Error(`请在公用模块uni-id的config.json内添加配置项：${t}.oauth.weixin.${r}`)
+function jr({
+	platform: e
+}) {
+	const t = I(e),
+		r = e || __ctx__.PLATFORM;
+	if (!t.oauth || !t.oauth.weixin) throw new Error(`请在公用模块uni-id的config.json或init方法中添加${r}平台微信登录配置项`);
+	["appid", "appsecret"].forEach(e => {
+		if (!t.oauth.weixin[e]) throw new Error(`请在公用模块uni-id的config.json或init方法中添加配置项：${r}.oauth.weixin.${e}`)
 	});
-	return gr(e.oauth.weixin)
+	return kr(t.oauth.weixin)
 }
-const vr = uniCloud.database();
-const br = uniCloud.database();
-const Sr = uniCloud.database();
+const Tr = uniCloud.database();
+const Or = uniCloud.database();
+const Ir = uniCloud.database();
 
-function _r() {
-	const e = k(),
-		t = __ctx__.PLATFORM;
-	if (!e.oauth || !e.oauth.alipay) throw new Error(`请在公用模块uni-id的config.json内添加${t}平台支付宝登录配置项`);
-	["appid", "privateKey"].forEach(r => {
-		if (!e.oauth.alipay[r]) throw new Error(`请在公用模块uni-id的config.json内添加配置项：${t}.oauth.alipay.${r}`)
+function Cr({
+	platform: e
+}) {
+	const t = I(e),
+		r = e || __ctx__.PLATFORM;
+	if (!t.oauth || !t.oauth.alipay) throw new Error(`请在公用模块uni-id的config.json或init方法中添加${r}平台支付宝登录配置项`);
+	["appid", "privateKey"].forEach(e => {
+		if (!t.oauth.alipay[e]) throw new Error(`请在公用模块uni-id的config.json或init方法中添加配置项：${r}.oauth.alipay.${e}`)
 	});
-	return yr(e.oauth.alipay)
+	return xr(t.oauth.alipay)
 }
-const Er = uniCloud.database();
-const xr = uniCloud.database();
-var jr = {
+const Ar = uniCloud.database();
+const Rr = uniCloud.database();
+const Pr = uniCloud.database();
+async function $r({
+	mobile: e,
+	email: t,
+	code: r,
+	expiresIn: n,
+	type: o
+}) {
+	if (!e && !t || e && t) return {
+		code: 50101,
+		msg: "手机号和邮箱必须且只能给定其中一个"
+	};
+	n || (n = 180);
+	const i = Date.now(),
+		a = {
+			mobile: e,
+			email: t,
+			type: o,
+			code: r,
+			state: 0,
+			ip: __ctx__.CLIENTIP,
+			created_at: i,
+			expired_at: i + 1e3 * n
+		};
+	try {
+		return S("addRes", await T.add(a)), {
+			code: 0,
+			mobile: e,
+			email: t
+		}
+	} catch (e) {
+		return {
+			code: 90001,
+			msg: "记录验证信息失败"
+		}
+	}
+}
+async function Nr({
+	mobile: e,
+	email: t,
+	code: r,
+	type: n
+}) {
+	if (!e && !t || e && t) return {
+		code: 50201,
+		msg: "手机号和邮箱必须且只能给定其中一个"
+	};
+	const o = Pr.command,
+		i = Date.now(),
+		a = {
+			mobile: e,
+			email: t,
+			type: n,
+			code: r,
+			state: 0,
+			expired_at: o.gt(i)
+		};
+	try {
+		const e = await T.where(a).orderBy("created_at", "desc").limit(1).get();
+		if (S("verifyRecord:", e), e && e.data && e.data.length > 0) {
+			const t = e.data[0];
+			return S("upRes", await T.doc(t._id).update({
+				state: 1
+			})), {
+				code: 0,
+				msg: "验证通过"
+			}
+		}
+		return {
+			code: 50202,
+			msg: "验证码错误或已失效"
+		}
+	} catch (e) {
+		return {
+			code: 90001,
+			msg: "验证码校验失败"
+		}
+	}
+}
+const Br = uniCloud.database();
+const Mr = uniCloud.database();
+const Dr = uniCloud.database().command;
+var Lr = {
+	init: function(e) {
+		O = e
+	},
 	register: async function(e) {
 		const t = [],
 			r = [{
@@ -2197,51 +2453,67 @@ var jr = {
 					...r.extraCond
 				})
 			}), 0 === t.length) return {
-			code: 1001,
+			code: 20101,
 			msg: "用户名、邮箱、手机号不可同时为空"
 		};
-		e.username = e.username.trim();
-		const n = cr.command,
-			o = await j.where(n.or(...t)).get();
-		if (_("userInDB:", o), o && o.data.length > 0) {
-			const t = o.data[0];
-			for (let n = 0; n < r.length; n++) {
-				const o = r[n];
-				let i = !0;
-				if (o.extraCond && (i = Object.keys(o.extraCond).every(e => t[e] === o.extraCond[e])), t[o.name] === e[o.name] &&
-					i) return {
-					code: 1001,
-					msg: o.desc + "已存在"
+		const {
+			username: n,
+			email: o,
+			mobile: i,
+			myInviteCode: a
+		} = e, s = hr.command;
+		try {
+			const c = await j.where(s.or(...t)).get();
+			if (S("userInDB:", c), c && c.data.length > 0) {
+				const t = c.data[0];
+				for (let n = 0; n < r.length; n++) {
+					const o = r[n];
+					let i = !0;
+					if (o.extraCond && (i = Object.keys(o.extraCond).every(e => t[e] === o.extraCond[e])), t[o.name] === e[o.name] &&
+						i) return {
+						code: 20102,
+						msg: o.desc + "已存在"
+					}
 				}
 			}
+			e.password = A(e.password), e.register_date = (new Date).getTime(), e.register_ip = __ctx__.CLIENTIP, a && (e.my_invite_code =
+				a);
+			const u = await mr(e);
+			if (u.code > 0) return u;
+			const f = u.result;
+			S("addRes", f);
+			const d = f.id,
+				{
+					token: p,
+					tokenExpired: l
+				} = dr.createToken({
+					_id: d
+				});
+			return await j.doc(d).update({
+				token: [p]
+			}), {
+				code: 0,
+				uid: d,
+				username: n,
+				email: o,
+				mobile: i,
+				msg: "注册成功",
+				token: p,
+				tokenExpired: l
+			}
+		} catch (e) {
+			return {
+				code: 90001,
+				msg: "数据库写入异常"
+			}
 		}
-		e.password = T(e.password), e.register_date = (new Date).getTime(), e.register_ip = __ctx__.CLIENTIP;
-		const i = await j.add(e);
-		_("addRes", i);
-		const s = i.id,
-			{
-				token: a,
-				tokenExpired: c
-			} = ar.createToken({
-				_id: s
-			});
-		return await j.doc(s).update({
-			token: [a]
-		}), i.id ? {
-			code: 0,
-			uid: s,
-			username: e.username,
-			msg: "注册成功",
-			token: a,
-			tokenExpired: c
-		} : void 0
 	},
 	login: async function({
 		username: e,
 		password: t,
 		queryField: r = []
 	}) {
-		const n = ur.command,
+		const n = yr.command,
 			o = [];
 		r && r.length || (r = ["username"]);
 		const i = {
@@ -2258,143 +2530,84 @@ var jr = {
 				...i[t]
 			})
 		});
-		const s = await j.where(n.or(...o)).limit(1).get();
-		if (_("userInDB:", s), !(s && s.data && s.data.length > 0)) return {
-			code: 1101,
+		const a = await j.where(n.or(...o)).limit(1).get(),
+			s = __ctx__.CLIENTIP,
+			{
+				passwordErrorLimit: c,
+				passwordErrorRetryTime: u
+			} = I();
+		if (S("userInDB:", a), !(a && a.data && a.data.length > 0)) return {
+			code: 10101,
 			msg: "用户不存在"
 		}; {
-			const r = s.data[0],
+			const r = a.data[0],
 				n = r.password;
-			if (T(t) !== n) return {
-				code: 1102,
+			let o = r.login_ip_limit || [];
+			o = o.filter(e => e.last_error_time > Date.now() - 1e3 * u);
+			let i = o.find(e => e.ip === s);
+			if (i && i.error_times >= c) return {
+				code: 10103,
+				msg: `密码错误次数过多，请${C(i.last_error_time+1e3*u)}再试。`
+			};
+			if (A(t) !== n) return i ? (i.error_times++, i.last_error_time = Date.now()) : (i = {
+				ip: s,
+				error_times: 1,
+				last_error_time: Date.now()
+			}, o.push(i)), await j.doc(r._id).update({
+				login_ip_limit: o
+			}), {
+				code: 10102,
 				msg: "密码错误"
 			};
 			try {
-				_("过期token清理");
-				let t = r.token || [];
-				"string" == typeof t && (t = [t]);
-				const n = ar.getExpiredToken(t);
-				t = t.filter(e => -1 === n.indexOf(e)), _("开始修改最后登录时间");
+				const t = await gr(r);
+				if (0 !== t.code) return t;
+				const n = t.user.token;
+				S("开始修改最后登录时间");
 				const {
-					token: o,
-					tokenExpired: i
-				} = ar.createToken(r);
-				_("token", o), t.push(o);
-				return _("upRes", await j.doc(r._id).update({
+					token: i,
+					tokenExpired: a
+				} = dr.createToken(r);
+				S("token", i), n.push(i);
+				return S("upRes", await j.doc(r._id).update({
 					last_login_date: (new Date).getTime(),
-					last_login_ip: __ctx__.CLIENTIP,
-					token: t
+					last_login_ip: s,
+					token: n,
+					login_ip_limit: o
 				})), {
 					code: 0,
-					token: o,
+					token: i,
 					uid: r._id,
 					username: e,
 					msg: "登录成功",
-					tokenExpired: i
+					tokenExpired: a
 				}
 			} catch (e) {
-				return _("写入异常：", e), {
-					code: 1104,
+				return S("写入异常：", e), {
+					code: 90001,
 					msg: "数据库写入异常"
 				}
 			}
 		}
 	},
 	loginByWeixin: async function(e) {
-		const t = __ctx__.PLATFORM,
-			{
-				openid: r,
-				unionid: n
-			} = await wr()["mp-weixin" === t ? "code2Session" : "getOauthAccessToken"](e);
-		if (!r) throw new Error("获取openid失败");
-		const o = vr.command,
-			i = [{
-				wx_openid: {
-					[t]: r
-				}
-			}];
-		n && i.push({
-			wx_unionid: n
+		let t = e;
+		"string" == typeof e && (t = {
+			code: e
 		});
-		const s = await j.where(o.or(...i)).get();
-		if (s && s.data && s.data.length > 0) {
-			const e = s.data[0];
-			try {
-				_("过期token清理");
-				let o = e.token || [];
-				const i = ar.getExpiredToken(o);
-				o = o.filter(e => -1 === i.indexOf(e)), _("开始修改最后登录时间，写入unionid（可能不存在）和openid");
-				const {
-					token: s,
-					tokenExpired: a
-				} = ar.createToken(e);
-				_("token", s), o.push(s);
-				const c = {
-					last_login_date: (new Date).getTime(),
-					last_login_ip: __ctx__.CLIENTIP,
-					token: o,
-					wx_openid: {
-						[t]: r
-					}
-				};
-				n && (c.wx_unionid = n);
-				return _("upRes", await j.doc(e._id).update(c)), {
-					code: 0,
-					token: s,
-					uid: e._id,
-					username: e.username,
-					msg: "登录成功",
-					tokenExpired: a
-				}
-			} catch (e) {
-				return _("写入异常：", e), {
-					code: 1104,
-					msg: "数据库写入异常"
-				}
-			}
-		} else try {
-			const e = await j.add({
-					register_date: (new Date).getTime(),
-					register_ip: __ctx__.CLIENTIP,
-					wx_openid: {
-						[t]: r
-					},
-					wx_unionid: n
-				}),
-				o = e.id,
-				{
-					token: i,
-					tokenExpired: s
-				} = ar.createToken({
-					_id: o
-				});
-			return await j.doc(o).update({
-				token: [i]
-			}), {
-				code: 0,
-				token: i,
-				uid: e.id,
-				msg: "登录成功",
-				tokenExpired: s
-			}
-		} catch (e) {
-			return _("写入异常：", e), {
-				code: 1104,
-				msg: "数据库写入异常"
-			}
-		}
-	},
-	bindWeixin: async function({
-		uid: e,
-		code: t
-	}) {
-		const r = __ctx__.PLATFORM,
+		const r = t.platform || __ctx__.PLATFORM,
 			{
 				openid: n,
-				unionid: o
-			} = await wr()["mp-weixin" === r ? "code2Session" : "getOauthAccessToken"](t);
-		if (!n) throw new Error("获取openid失败");
-		const i = br.command,
+				unionid: o,
+				sessionKey: i
+			} = await jr({
+				platform: r
+			})["mp-weixin" === r ? "code2Session" : "getOauthAccessToken"](t.code);
+		if (!n) return {
+			code: 10401,
+			msg: "获取openid失败"
+		};
+		const a = Tr.command,
 			s = [{
 				wx_openid: {
 					[r]: n
@@ -2403,209 +2616,346 @@ var jr = {
 		o && s.push({
 			wx_unionid: o
 		});
-		const a = await j.where(i.or(...s)).get();
-		if (a && a.data && a.data.length > 0) return {
-			code: 1101,
+		const c = await j.where(a.or(...s)).get();
+		if (c && c.data && c.data.length > 0) {
+			const e = c.data[0];
+			try {
+				const t = await gr(e);
+				if (0 !== t.code) return t;
+				const a = t.user,
+					s = a.token;
+				S("开始修改最后登录时间，写入unionid（可能不存在）和openid");
+				const {
+					token: c,
+					tokenExpired: u
+				} = dr.createToken(e);
+				S("token", c), s.push(c);
+				const f = {
+					last_login_date: (new Date).getTime(),
+					last_login_ip: __ctx__.CLIENTIP,
+					token: s,
+					wx_openid: {
+						[r]: n
+					}
+				};
+				o && (f.wx_unionid = o);
+				return S("upRes", await j.doc(e._id).update(f)), {
+					code: 0,
+					msg: "登录成功",
+					token: c,
+					tokenExpired: u,
+					uid: e._id,
+					username: e.username,
+					openid: n,
+					unionid: o,
+					sessionKey: i,
+					type: "login",
+					mobileConfirmed: 1 === a.mobile_confirmed,
+					emailConfirmed: 1 === a.email_confirmed
+				}
+			} catch (e) {
+				return S("写入异常：", e), {
+					code: 90001,
+					msg: "数据库写入异常"
+				}
+			}
+		} else try {
+			const e = {
+					register_date: (new Date).getTime(),
+					register_ip: __ctx__.CLIENTIP,
+					wx_openid: {
+						[r]: n
+					},
+					wx_unionid: o
+				},
+				a = t.myInviteCode;
+			a && (e.my_invite_code = a);
+			const s = await mr(e);
+			if (s.code > 0) return s;
+			const c = s.result.id,
+				{
+					token: u,
+					tokenExpired: f
+				} = dr.createToken({
+					_id: c
+				});
+			return await j.doc(c).update({
+				token: [u]
+			}), {
+				code: 0,
+				msg: "登录成功",
+				token: u,
+				tokenExpired: f,
+				uid: c,
+				openid: n,
+				unionid: o,
+				sessionKey: i,
+				type: "register",
+				mobileConfirmed: !1,
+				emailConfirmed: !1
+			}
+		} catch (e) {
+			return S("写入异常：", e), {
+				code: 90001,
+				msg: "数据库写入异常"
+			}
+		}
+	},
+	bindWeixin: async function({
+		uid: e,
+		code: t,
+		platform: r
+	}) {
+		const n = r || __ctx__.PLATFORM,
+			{
+				openid: o,
+				unionid: i
+			} = await jr({
+				platform: n
+			})["mp-weixin" === n ? "code2Session" : "getOauthAccessToken"](t);
+		if (!o) return {
+			code: 60301,
+			msg: "获取openid失败"
+		};
+		const a = Or.command,
+			s = [{
+				wx_openid: {
+					[n]: o
+				}
+			}];
+		i && s.push({
+			wx_unionid: i
+		});
+		const c = await j.where(a.or(...s)).get();
+		if (c && c.data && c.data.length > 0) return {
+			code: 60302,
 			msg: "微信绑定失败，此微信账号已被绑定"
 		};
 		try {
 			const t = {
 				wx_openid: {
-					[r]: n
+					[n]: o
 				}
 			};
-			o && (t.wx_unionid = o);
-			return 1 === (await j.doc(e).update(t)).updated ? {
+			return i && (t.wx_unionid = i), await j.doc(e).update(t), {
 				code: 0,
 				msg: "绑定成功"
-			} : {
-				code: 1102,
-				msg: "微信绑定失败，请稍后再试"
 			}
 		} catch (e) {
-			return _("写入异常：", e), {
-				code: 1104,
+			return S("写入异常：", e), {
+				code: 90001,
 				msg: "数据库写入异常"
 			}
 		}
 	},
 	unbindWeixin: async function(e) {
 		try {
-			const t = Sr.command,
+			const t = Ir.command,
 				r = await j.doc(e).update({
 					wx_openid: t.remove(),
 					wx_unionid: t.remove()
 				});
-			return _("upRes:", r), 1 === r.updated ? {
+			return S("upRes:", r), 1 === r.updated ? {
 				code: 0,
 				msg: "微信解绑成功"
 			} : {
-				code: 1102,
+				code: 70301,
 				msg: "微信解绑失败，请稍后再试"
 			}
 		} catch (e) {
-			return _("写入异常：", e), {
-				code: 1104,
+			return S("写入异常：", e), {
+				code: 90001,
 				msg: "数据库写入异常"
 			}
 		}
 	},
 	loginByAlipay: async function(e) {
-		const {
-			openid: t
-		} = await _r().code2Session(e);
-		if (!t) throw new Error("获取openid失败");
-		const r = await j.where({
-			ali_openid: t
+		let t = e;
+		"string" == typeof e && (t = {
+			code: e
+		});
+		const r = t.platform || __ctx__.PLATFORM,
+			{
+				openid: n
+			} = await Cr({
+				platform: r
+			}).code2Session(t.code);
+		if (!n) return {
+			code: 10501,
+			msg: "获取openid失败"
+		};
+		const o = await j.where({
+			ali_openid: n
 		}).get();
-		if (r && r.data && r.data.length > 0) {
-			const e = r.data[0];
+		if (o && o.data && o.data.length > 0) {
+			const e = o.data[0];
 			try {
-				_("过期token清理");
-				let t = e.token || [];
-				const r = ar.getExpiredToken(t);
-				t = t.filter(e => -1 === r.indexOf(e)), _("开始修改最后登录时间，写入openid");
+				const t = await gr(e);
+				if (0 !== t.code) return t;
+				const r = t.user,
+					o = r.token;
+				S("开始修改最后登录时间，写入openid");
 				const {
-					token: n,
-					tokenExpired: o
-				} = ar.createToken(e);
-				_("token", n), t.push(n);
-				return _("upRes", await j.doc(e._id).update({
+					token: i,
+					tokenExpired: a
+				} = dr.createToken(e);
+				S("token", i), o.push(i);
+				return S("upRes", await j.doc(e._id).update({
 					last_login_date: (new Date).getTime(),
 					last_login_ip: __ctx__.CLIENTIP,
-					token: t
+					token: o
 				})), {
 					code: 0,
-					token: n,
+					msg: "登录成功",
+					token: i,
 					uid: e._id,
 					username: e.username,
-					msg: "登录成功",
-					tokenExpired: o
+					openid: n,
+					type: "login",
+					tokenExpired: a,
+					mobileConfirmed: 1 === r.mobile_confirmed,
+					emailConfirmed: 1 === r.email_confirmed
 				}
 			} catch (e) {
-				return _("写入异常：", e), {
-					code: 1104,
+				return S("写入异常：", e), {
+					code: 90001,
 					msg: "数据库写入异常"
 				}
 			}
 		} else try {
-			const e = await j.add({
+			const e = {
 					register_date: (new Date).getTime(),
 					register_ip: __ctx__.CLIENTIP,
-					ali_openid: t
-				}),
-				r = e.id,
+					ali_openid: n
+				},
+				r = t.myInviteCode;
+			r && (e.my_invite_code = r);
+			const o = await mr(e);
+			if (o.code > 0) return o;
+			const i = o.result,
+				a = i.id,
 				{
-					token: n,
-					tokenExpired: o
-				} = ar.createToken({
-					_id: r
+					token: s,
+					tokenExpired: c
+				} = dr.createToken({
+					_id: a
 				});
-			return await j.doc(r).update({
-				token: [n]
+			return await j.doc(a).update({
+				token: [s]
 			}), {
 				code: 0,
-				token: n,
-				uid: e.id,
 				msg: "登录成功",
-				tokenExpired: o
+				token: s,
+				uid: i.id,
+				openid: n,
+				type: "register",
+				tokenExpired: c,
+				mobileConfirmed: !1,
+				emailConfirmed: !1
 			}
 		} catch (e) {
-			return _("写入异常：", e), {
-				code: 1104,
+			return S("写入异常：", e), {
+				code: 90001,
 				msg: "数据库写入异常"
 			}
 		}
 	},
 	bindAlipay: async function({
 		uid: e,
-		code: t
+		code: t,
+		platform: r
 	}) {
-		const {
-			openid: r
-		} = await _r().code2Session(t);
-		if (!r) throw new Error("获取openid失败");
-		const n = await j.where({
-			ali_openid: r
+		const n = r || __ctx__.PLATFORM,
+			{
+				openid: o
+			} = await Cr({
+				platform: n
+			}).code2Session(t);
+		if (!o) return {
+			code: 60401,
+			msg: "获取openid失败"
+		};
+		const i = await j.where({
+			ali_openid: o
 		}).get();
-		if (n && n.data && n.data.length > 0) return {
-			code: 1101,
+		if (i && i.data && i.data.length > 0) return {
+			code: 60402,
 			msg: "支付宝绑定失败，此账号已被绑定"
 		};
 		try {
-			return 1 === (await j.doc(e).update({
-				ali_openid: r
-			})).updated ? {
+			return await j.doc(e).update({
+				ali_openid: o
+			}), {
 				code: 0,
 				msg: "绑定成功"
-			} : {
-				code: 1102,
-				msg: "支付宝绑定失败，请稍后再试"
 			}
 		} catch (e) {
-			return _("写入异常：", e), {
-				code: 1104,
+			return S("写入异常：", e), {
+				code: 90001,
 				msg: "数据库写入异常"
 			}
 		}
 	},
 	unbindAlipay: async function(e) {
 		try {
-			const t = Er.command,
+			const t = Ar.command,
 				r = await j.doc(e).update({
 					ali_openid: t.remove()
 				});
-			return _("upRes:", r), 1 === r.updated ? {
+			return S("upRes:", r), 1 === r.updated ? {
 				code: 0,
 				msg: "支付宝解绑成功"
 			} : {
-				code: 1102,
+				code: 70401,
 				msg: "支付宝解绑失败，请稍后再试"
 			}
 		} catch (e) {
-			return _("写入异常：", e), {
-				code: 1104,
+			return S("写入异常：", e), {
+				code: 90001,
 				msg: "数据库写入异常"
 			}
 		}
 	},
 	logout: async function(e) {
-		const t = await ar.checkToken(e);
+		const t = await dr.checkToken(e);
 		if (t.code && t.code > 0) return t;
-		const r = xr.command,
-			n = await j.doc(t.uid).update({
+		try {
+			const r = Rr.command;
+			return await j.doc(t.uid).update({
 				token: r.pull(e)
-			});
-		return _("logout->upRes", n), 0 === n.updated ? {
-			code: 1101,
-			msg: "用户不存在"
-		} : {
-			code: 0,
-			msg: "退出成功"
+			}), {
+				code: 0,
+				msg: "退出成功"
+			}
+		} catch (e) {
+			return {
+				code: 90001,
+				msg: "数据库写入异常"
+			}
 		}
 	},
 	updatePwd: async function(e) {
 		const t = await j.doc(e.uid).get();
-		if (_("userInDB:", t), !(t && t.data && t.data.length > 0)) return {
-			code: 1101,
+		if (!(t && t.data && t.data.length > 0)) return {
+			code: 40201,
 			msg: "用户不存在"
 		}; {
 			const r = t.data[0].password;
-			if (T(e.oldPassword) !== r) return {
-				code: 1102,
-				msg: "密码错误"
+			if (A(e.oldPassword) !== r) return {
+				code: 40202,
+				msg: "旧密码错误"
 			};
 			try {
-				return _("upRes", await j.doc(t.data[0]._id).update({
-					password: T(e.newPassword),
+				return S("upRes", await j.doc(t.data[0]._id).update({
+					password: A(e.newPassword),
 					token: []
 				})), {
 					code: 0,
 					msg: "修改成功"
 				}
 			} catch (e) {
-				return _("发生异常", e), {
-					code: 1104,
+				return S("发生异常", e), {
+					code: 90001,
 					msg: "数据库写入异常"
 				}
 			}
@@ -2613,102 +2963,656 @@ var jr = {
 	},
 	updateUser: async function(e) {
 		const t = e.uid;
+		if (!t) return {
+			code: 80101,
+			msg: "缺少uid参数"
+		};
 		delete e.uid;
 		try {
-			return _("update -> upRes", await j.doc(t).update(e)), {
+			return S("update -> upRes", await j.doc(t).update(e)), {
 				code: 0,
 				msg: "修改成功"
 			}
 		} catch (e) {
-			return _("发生异常", e), {
-				code: 1104,
+			return S("发生异常", e), {
+				code: 90001,
 				msg: "数据库写入异常"
 			}
 		}
 	},
 	setAvatar: async function(e) {
 		try {
-			return _("setAvatar -> upRes", await j.doc(e.uid).update({
+			return S("setAvatar -> upRes", await j.doc(e.uid).update({
 				avatar: e.avatar
 			})), {
 				code: 0,
-				msg: "设置成功"
+				msg: "头像设置成功"
 			}
 		} catch (e) {
-			return _("发生异常", e), {
-				code: 1104,
+			return S("发生异常", e), {
+				code: 90001,
 				msg: "数据库写入异常"
 			}
 		}
 	},
-	bindMobile: async function(e) {
+	bindMobile: async function({
+		uid: e,
+		mobile: t,
+		code: r
+	}) {
 		try {
-			const t = await j.where({
-				mobile: e.mobile,
+			const n = await j.where({
+				mobile: t,
 				mobile_confirmed: 1
 			}).count();
-			if (t && t.total > 0) return {
-				code: 1101,
+			if (n && n.total > 0) return {
+				code: 60101,
 				msg: "此手机号已被绑定"
 			};
-			return _("bindMobile -> upRes", await j.doc(e.uid).update({
-				mobile: e.mobile,
+			if (r) {
+				const e = await Nr({
+					mobile: t,
+					code: r,
+					type: "bind"
+				});
+				if (0 !== e.code) return e
+			}
+			return S("bindMobile -> upRes", await j.doc(e).update({
+				mobile: t,
 				mobile_confirmed: 1
 			})), {
 				code: 0,
-				msg: "设置成功"
+				msg: "手机号码绑定成功"
 			}
 		} catch (e) {
-			return _("发生异常", e), {
-				code: 1104,
+			return S("发生异常", e), {
+				code: 90001,
 				msg: "数据库写入异常"
 			}
 		}
 	},
-	bindEmail: async function(e) {
+	bindEmail: async function({
+		uid: e,
+		email: t,
+		code: r
+	}) {
 		try {
-			const t = await j.where({
-				email: e.email,
+			const n = await j.where({
+				email: t,
 				email_confirmed: 1
 			}).count();
-			if (t && t.total > 0) return {
-				code: 1101,
+			if (n && n.total > 0) return {
+				code: 60201,
 				msg: "此邮箱已被绑定"
 			};
-			return _("bindEmail -> upRes", await j.doc(e.uid).update({
-				email: e.email,
+			if (r) {
+				const e = await Nr({
+					email: t,
+					code: r,
+					type: "bind"
+				});
+				if (0 !== e.code) return e
+			}
+			return S("bindEmail -> upRes", await j.doc(e).update({
+				email: t,
 				email_confirmed: 1
 			})), {
 				code: 0,
-				msg: "设置成功"
+				msg: "邮箱绑定成功"
 			}
 		} catch (e) {
-			return _("发生异常", e), {
-				code: 1104,
+			return S("发生异常", e), {
+				code: 90001,
 				msg: "数据库写入异常"
 			}
 		}
 	},
-	checkToken: ar.checkToken,
-	encryptPwd: T,
+	createToken: dr.createToken,
+	decryptToken: dr.decryptToken,
+	refreshToken: dr.refreshToken,
+	checkToken: dr.checkToken,
+	encryptPwd: A,
 	resetPwd: async function({
 		uid: e,
 		password: t
 	}) {
 		try {
-			return _("upRes", await j.doc(e).update({
-				password: T(t),
+			return S("upRes", await j.doc(e).update({
+				password: A(t),
 				token: []
 			})), {
 				code: 0,
 				msg: "密码重置成功"
 			}
 		} catch (e) {
-			return _("发生异常", e), {
-				code: 1104,
+			return S("发生异常", e), {
+				code: 90001,
 				msg: "数据库写入异常"
+			}
+		}
+	},
+	unbindMobile: async function({
+		uid: e,
+		mobile: t,
+		code: r
+	}) {
+		try {
+			if (r) {
+				const e = await Nr({
+					mobile: t,
+					code: r,
+					type: "unbind"
+				});
+				if (0 !== e.code) return e
+			}
+			const n = Br.command;
+			return 1 === (await j.where({
+				_id: e,
+				mobile: t
+			}).update({
+				mobile: n.remove(),
+				mobile_confirmed: n.remove()
+			})).updated ? {
+				code: 0,
+				msg: "手机号解绑成功"
+			} : {
+				code: 70101,
+				msg: "手机号解绑失败，请稍后再试"
+			}
+		} catch (e) {
+			return S("发生异常", e), {
+				code: 90001,
+				msg: "数据库写入异常"
+			}
+		}
+	},
+	setVerifyCode: $r,
+	verifyCode: Nr,
+	sendSmsCode: async function({
+		mobile: e,
+		code: t,
+		type: r
+	}) {
+		if (!e) throw new Error("手机号码不可为空");
+		if (!t) throw new Error("验证码不可为空");
+		if (!r) throw new Error("验证码类型不可为空");
+		const n = I();
+		let o = n && n.service && n.service.sms;
+		if (!o) throw new Error("请在config.json或init方法中配置service.sms下短信相关参数");
+		o = Object.assign({
+			codeExpiresIn: 300
+		}, o);
+		const i = ["name", "smsKey", "smsSecret"];
+		for (let e = 0, t = i.length; e < t; e++) {
+			const t = i[e];
+			if (!o[t]) throw new Error("请在config.json或init方法中service.sms下配置" + t)
+		}
+		const {
+			name: a,
+			smsKey: s,
+			smsSecret: c,
+			codeExpiresIn: u
+		} = o;
+		let f;
+		switch (r) {
+			case "login":
+				f = "登录";
+				break;
+			default:
+				f = "验证手机号"
+		}
+		try {
+			await uniCloud.sendSms({
+				smsKey: s,
+				smsSecret: c,
+				phone: e,
+				templateId: "uniID_code",
+				data: {
+					name: a,
+					code: t,
+					action: f,
+					expMinute: "" + Math.round(u / 60)
+				}
+			});
+			const n = await $r({
+				mobile: e,
+				code: t,
+				expiresIn: u,
+				type: r
+			});
+			return n.code >= 0 ? n : {
+				code: 0,
+				msg: "验证码发送成功"
+			}
+		} catch (e) {
+			return {
+				code: 50301,
+				msg: "验证码发送失败, " + e.message
+			}
+		}
+	},
+	loginBySms: async function({
+		mobile: e,
+		code: t,
+		password: r,
+		inviteCode: n,
+		myInviteCode: o,
+		type: i
+	}) {
+		const a = I();
+		if (a.forceInviteCode && !i) throw new Error("[loginBySms]强制使用邀请码注册时，需指明type为register还是login");
+		const s = await Nr({
+			mobile: e,
+			code: t,
+			type: i || "login"
+		});
+		if (0 !== s.code) return s;
+		const c = {
+				mobile: e,
+				mobile_confirmed: 1
+			},
+			u = await j.where(c).get();
+		if (S("userInDB:", u), !(u && u.data && u.data.length > 0)) {
+			const t = Date.now();
+			if ("login" === i) return {
+				code: 10203,
+				msg: "此手机号尚未注册"
+			};
+			const s = {
+				mobile: e,
+				mobile_confirmed: 1,
+				register_ip: __ctx__.CLIENTIP,
+				register_date: t
+			};
+			if ("register" === i) {
+				if (r && (s.password = A(r)), n) {
+					const e = await j.where({
+						my_invite_code: n
+					}).get();
+					if (1 !== e.data.length) return {
+						code: 10202,
+						msg: "邀请码无效"
+					};
+					s.inviter_uid = [e.data[0]._id].concat(e.data[0].inviter_uid || []), s.invite_time = t
+				} else if (a.forceInviteCode) return {
+					code: 10202,
+					msg: "邀请码无效"
+				};
+				o && (s.my_invite_code = o)
+			}
+			const c = await mr(s);
+			if (c.code > 0) return c;
+			const u = c.result;
+			S("addRes", u);
+			const f = u.id;
+			if (u.id) {
+				const {
+					token: t,
+					tokenExpired: r
+				} = dr.createToken({
+					_id: f
+				});
+				return await j.doc(f).update({
+					token: [t]
+				}), {
+					code: 0,
+					uid: f,
+					mobile: e,
+					type: "register",
+					msg: "登录成功",
+					token: t,
+					tokenExpired: r
+				}
+			}
+			return {
+				code: 90001,
+				msg: "数据库写入失败"
+			}
+		} {
+			if ("register" === i) return {
+				code: 10201,
+				msg: "此手机号已注册"
+			};
+			const t = u.data[0];
+			try {
+				const r = await gr(t);
+				if (0 !== r.code) return r;
+				const n = r.user.token;
+				S("开始修改最后登录时间");
+				const {
+					token: o,
+					tokenExpired: i
+				} = dr.createToken(t);
+				S("token", o), n.push(o);
+				return S("upRes", await j.doc(t._id).update({
+					last_login_date: (new Date).getTime(),
+					last_login_ip: __ctx__.CLIENTIP,
+					token: n
+				})), {
+					code: 0,
+					token: o,
+					uid: t._id,
+					username: t.username,
+					mobile: e,
+					type: "login",
+					msg: "登录成功",
+					tokenExpired: i
+				}
+			} catch (e) {
+				return S("写入异常：", e), {
+					code: 90001,
+					msg: "数据库写入异常"
+				}
+			}
+		}
+	},
+	loginByEmail: async function({
+		email: e,
+		code: t,
+		password: r,
+		myInviteCode: n,
+		type: o
+	}) {
+		const i = await Nr({
+			email: e,
+			code: t,
+			type: o || "login"
+		});
+		if (0 !== i.code) return i;
+		const a = {
+				email: e,
+				email_confirmed: 1
+			},
+			s = await j.where(a).get();
+		if (S("userInDB:", s), !(s && s.data && s.data.length > 0)) {
+			if ("login" === o) return {
+				code: 10302,
+				msg: "此邮箱尚未注册"
+			};
+			const t = {
+				email: e,
+				email_confirmed: 1,
+				register_ip: __ctx__.CLIENTIP,
+				register_date: Date.now()
+			};
+			"register" === o && (r && (t.password = A(r)), n && (t.my_invite_code = n));
+			const i = await mr(t);
+			if (i.code > 0) return i;
+			const a = i.result;
+			S("addRes", a);
+			const s = a.id;
+			if (a.id) {
+				const {
+					token: t,
+					tokenExpired: r
+				} = dr.createToken({
+					_id: s
+				});
+				return await j.doc(s).update({
+					token: [t]
+				}), {
+					code: 0,
+					msg: "注册成功",
+					uid: s,
+					email: e,
+					type: "register",
+					token: t,
+					tokenExpired: r
+				}
+			}
+			return {
+				code: 90001,
+				msg: "数据库写入失败"
+			}
+		} {
+			if ("register" === o) return {
+				code: 10301,
+				msg: "此邮箱已注册"
+			};
+			const t = s.data[0];
+			try {
+				const r = await gr(t);
+				if (0 !== r.code) return r;
+				const n = r.user.token;
+				S("开始修改最后登录时间");
+				const {
+					token: o,
+					tokenExpired: i
+				} = dr.createToken(t);
+				S("token", o), n.push(o);
+				return S("upRes", await j.doc(t._id).update({
+					last_login_date: (new Date).getTime(),
+					last_login_ip: __ctx__.CLIENTIP,
+					token: n
+				})), {
+					code: 0,
+					msg: "登录成功",
+					token: o,
+					uid: t._id,
+					username: t.username,
+					email: e,
+					type: "login",
+					tokenExpired: i
+				}
+			} catch (e) {
+				return S("写入异常：", e), {
+					code: 90001,
+					msg: "数据库写入异常"
+				}
+			}
+		}
+	},
+	unbindEmail: async function({
+		uid: e,
+		email: t,
+		code: r
+	}) {
+		try {
+			if (r) {
+				const e = await Nr({
+					email: t,
+					code: r,
+					type: "unbind"
+				});
+				if (0 !== e.code) return e
+			}
+			const n = Mr.command;
+			return 1 === (await j.where({
+				_id: e,
+				email: t
+			}).update({
+				email: n.remove(),
+				email_confirmed: n.remove()
+			})).updated ? {
+				code: 0,
+				msg: "邮箱解绑成功"
+			} : {
+				code: 70201,
+				msg: "邮箱解绑失败，请稍后再试"
+			}
+		} catch (e) {
+			return S("发生异常", e), {
+				code: 90001,
+				msg: "数据库写入异常"
+			}
+		}
+	},
+	setUserInviteCode: async function({
+		uid: e,
+		myInviteCode: t
+	}) {
+		const r = await lr({
+			inviteCode: t
+		});
+		if (r.code > 0) return r;
+		try {
+			return await j.doc(e).update({
+				my_invite_code: r.inviteCode
+			}), {
+				code: 0,
+				msg: "邀请码设置成功",
+				myInviteCode: r.inviteCode
+			}
+		} catch (e) {
+			return {
+				code: 90001,
+				msg: "数据库写入异常"
+			}
+		}
+	},
+	acceptInvite: async function({
+		uid: e,
+		inviteCode: t
+	}) {
+		const r = await j.where({
+			_id: Dr.neq(e),
+			inviter_uid: Dr.not(Dr.all([e])),
+			my_invite_code: t
+		}).get();
+		if (1 !== r.data.length) return {
+			code: 80501,
+			msg: "邀请码无效"
+		};
+		const n = [r.data[0]._id].concat(r.data[0].inviter_uid || []),
+			o = await j.doc(e).field({
+				my_invite_code: !0,
+				inviter_uid: !0
+			}).get();
+		if (0 === o.data.length) return {
+			code: 80502,
+			msg: "uid错误用户不存在"
+		};
+		if (o.data[0].inviter_uid && o.data[0].inviter_uid.length > 0) return {
+			code: 80503,
+			msg: "邀请码不可修改"
+		};
+		try {
+			const t = Date.now();
+			return await j.doc(e).update({
+				inviter_uid: n,
+				invite_time: t
+			}), await j.where({
+				inviter_uid: e
+			}).update({
+				inviter_uid: Dr.push(n)
+			}), {
+				code: 0,
+				msg: "邀请码填写成功"
+			}
+		} catch (e) {
+			return {
+				code: 90001,
+				msg: "数据库写入异常"
+			}
+		}
+	},
+	getUserInfo: async function({
+		uid: e,
+		field: t
+	}) {
+		const r = {};
+		if (t && t.length)
+			for (let e = 0; e < t.length; e++) r[t[e]] = !0;
+		try {
+			const t = await j.doc(e).field(r).get();
+			return 0 === t.data.length ? {
+				code: 80301,
+				msg: "未查询到用户信息"
+			} : {
+				code: 0,
+				msg: "获取用户信息成功",
+				userInfo: t.data[0]
+			}
+		} catch (e) {
+			return {
+				code: 90001,
+				msg: "数据库读写错误"
+			}
+		}
+	},
+	getInvitedUser: async function({
+		uid: e,
+		level: t = 1,
+		limit: r = 20,
+		offset: n = 0,
+		needTotal: o = !1
+	}) {
+		try {
+			const i = {
+				code: 0,
+				msg: "获取邀请列表成功",
+				invitedUser: (await j.where({
+					["inviter_uid." + (t - 1)]: e
+				}).field({
+					_id: !0,
+					username: !0,
+					mobile: !0,
+					invite_time: !0
+				}).orderBy("invite_time", "desc").skip(n).limit(r).get()).data
+			};
+			if (o) {
+				const r = await j.where({
+					["inviter_uid." + (t - 1)]: e
+				}).count();
+				i.total = r.total
+			}
+			return i
+		} catch (e) {
+			return {
+				code: 90001,
+				msg: "数据库读写错误"
+			}
+		}
+	},
+	code2SessionWeixin: async function(e) {
+		let t = e;
+		"string" == typeof e && (t = {
+			code: e
+		});
+		try {
+			const e = t.platform || __ctx__.PLATFORM,
+				r = await jr({
+					platform: e
+				})["mp-weixin" === e ? "code2Session" : "getOauthAccessToken"](t.code);
+			return r.openid ? {
+				code: 0,
+				msg: "",
+				...r
+			} : {
+				code: 80601,
+				msg: "获取openid失败"
+			}
+		} catch (e) {
+			return {
+				code: 80602,
+				msg: e.message
+			}
+		}
+	},
+	code2SessionAlipay: async function(e) {
+		let t = e;
+		"string" == typeof e && (t = {
+			code: e
+		});
+		try {
+			const e = t.platform || __ctx__.PLATFORM,
+				r = await Cr({
+					platform: e
+				}).code2Session(t.code);
+			return r.openid ? {
+				code: 0,
+				msg: "",
+				...r
+			} : {
+				code: 80701,
+				msg: "获取openid失败"
+			}
+		} catch (e) {
+			return {
+				code: 80702,
+				msg: e.message
 			}
 		}
 	}
 };
-module.exports = jr;
+module.exports = Lr;

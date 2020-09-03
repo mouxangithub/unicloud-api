@@ -1,6 +1,11 @@
 'use strict';
 const db = uniCloud.database()
 const _ = db.command
+// __dirname是为了兼容阿里云
+const openapi = require(__dirname + '/common/mp-cloud-openapi.js')
+const config = require(__dirname + '/config/index.json')
+const qr = require('qr-image');
+const interceptors = require(__dirname + '/libs/interceptors.js');
 exports.main = async (event, context) => {
 	let url = event.url;
 	let data = event.data;
@@ -9,44 +14,57 @@ exports.main = async (event, context) => {
 	// 工具包 common 为工具包目录
 	const tool = {
 		admin: require(__dirname + '/common/uni-id.js'),
-		openapi: require(__dirname + '/common/mp-cloud-openapi.js')
+		qr,
+		openapi
 	};
-	const before = require(__dirname + '/libs/before.js');
-	// 守卫拦截
+	// 请求拦截
+	let requestJson
 	try {
-		let json = await before.main({
+		requestJson = await interceptors.request({
 			url,
 			token,
 			tool
 		});
-		if (json.code != 0) {
-			return json;
+		if (requestJson.code != 0 || (!requestJson.code && requestJson.code != 0)) {
+			return requestJson;
 		}
 	} catch (err) {
-		return err
 		return {
 			code: 404,
-			msg: '拦截出错: Intercept error',
+			msg: '请求拦截出错: Request interception error',
 		}
 	}
 	// 加载业务函数
 	let controller;
 	try {
-		controller = require(__dirname + '/controller/' + url); // __dirname是为了兼容阿里云
+		controller = require(__dirname + '/controller/' + url);
+		var res = await controller.main({
+			data,
+			token,
+			method,
+			config,
+			tool,
+			db,
+			_
+		}, context);
 	} catch (err) {
-		return err
 		return {
 			code: 404,
 			msg: '请求错误: Request error',
 		}
 	}
-	// 执行业务函数
-	return await controller.main({
-		data,
-		token,
-		method,
-		tool,
-		db,
-		_
-	}, context);
+	// 响应拦截
+	try {
+		return await interceptors.response({
+			url,
+			token,
+			tool,
+			data: res
+		});
+	} catch (err) {
+		return {
+			code: 404,
+			msg: '响应拦截出错: Response interception error',
+		}
+	}
 };
