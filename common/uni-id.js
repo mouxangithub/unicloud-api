@@ -1,8 +1,5 @@
 "use strict";
-/**
- * 此函数为Uni-id云函数
- * 使用方法详情观看官方文档： https://uniapp.dcloud.io/uniCloud/uni-id
- */
+
 function e(e) {
 	return e && "object" == typeof e && "default" in e ? e.default : e
 }
@@ -134,18 +131,18 @@ function k(e, t) {
 	})
 }
 
-let O = {};
+let I = {};
 try {
-	O = JSON.parse(r.readFileSync(n.resolve(__dirname, "../config/index.json")))
+	I = JSON.parse(r.readFileSync(n.resolve(__dirname, "../config/index.json")))
 } catch (e) {}
 
-var config = I()
+var config = O()
 const x = uniCloud.database(),
 	j = x.collection(config.UserDB),
 	T = x.collection(config.VerifyDB);
 
-function I(e) {
-	const t = Object.assign(O, O[e || __ctx__.PLATFORM]) || {},
+function O(e) {
+	const t = Object.assign(I, I[e || __ctx__.PLATFORM]) || {},
 		r = Object.assign({
 			bindTokenToDevice: !0
 		}, t);
@@ -187,7 +184,7 @@ function C(e) {
 }
 
 function A(e) {
-	const r = I(),
+	const r = O(),
 		n = t.createHmac("sha1", r.passwordSecret.toString("ascii"));
 	return n.update(e), n.digest("hex")
 }
@@ -561,11 +558,11 @@ function Te(e) {
 	return je(ke.from(t, "base64").toString("binary"))
 }
 
-function Oe(e) {
+function Ie(e) {
 	return e.split(".")[2]
 }
 
-function Ie(e) {
+function Oe(e) {
 	return xe.test(e) && !!Te(e)
 }
 
@@ -574,7 +571,7 @@ function Ce(e, t, r) {
 		var n = new Error("Missing algorithm parameter for jws.verify");
 		throw n.code = "MISSING_ALGORITHM", n
 	}
-	var o = Oe(e = we(e)),
+	var o = Ie(e = we(e)),
 		i = function(e) {
 			return e.split(".", 2).join(".")
 		}(e);
@@ -582,7 +579,7 @@ function Ce(e, t, r) {
 }
 
 function Ae(e, t) {
-	if (t = t || {}, !Ie(e = we(e))) return null;
+	if (t = t || {}, !Oe(e = we(e))) return null;
 	var r = Te(e);
 	if (!r) return null;
 	var n = function(e, t) {
@@ -593,7 +590,7 @@ function Ae(e, t) {
 	return ("JWT" === r.typ || t.json) && (n = JSON.parse(n, t.encoding)), {
 		header: r,
 		payload: n,
-		signature: Oe(e)
+		signature: Ie(e)
 	}
 }
 
@@ -615,7 +612,7 @@ a.inherits(Re, i), Re.prototype.verify = function() {
 	} catch (e) {
 		this.readable = !1, this.emit("error", e), this.emit("close")
 	}
-}, Re.decode = Ae, Re.isValid = Ie, Re.verify = Ce;
+}, Re.decode = Ae, Re.isValid = Oe, Re.verify = Ce;
 var Pe = Re,
 	$e = {
 		ALGORITHMS: ["HS256", "HS384", "HS512", "RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "ES256", "ES384",
@@ -802,10 +799,10 @@ var ze = function(e, t) {
 		i[j] = "[v=\\s]*(" + i[E] + ")(?:\\.(" + i[E] + ")(?:\\.(" + i[E] + ")(?:" + i[h] + ")?" + i[y] + "?)?)?";
 		var T = a++;
 		i[T] = "^" + i[S] + "\\s*" + i[x] + "$";
-		var O = a++;
-		i[O] = "^" + i[S] + "\\s*" + i[j] + "$";
 		var I = a++;
-		i[I] = "(?:^|[^\\d])(\\d{1,16})(?:\\.(\\d{1,16}))?(?:\\.(\\d{1,16}))?(?:$|[^\\d])";
+		i[I] = "^" + i[S] + "\\s*" + i[j] + "$";
+		var O = a++;
+		i[O] = "(?:^|[^\\d])(\\d{1,16})(?:\\.(\\d{1,16}))?(?:\\.(\\d{1,16}))?(?:$|[^\\d])";
 		var C = a++;
 		i[C] = "(?:~>?)";
 		var A = a++;
@@ -1215,7 +1212,7 @@ var ze = function(e, t) {
 							return r("replaceXRanges", e, t), e.split(/\s+/).map((function(e) {
 								return function(e, t) {
 									e = e.trim();
-									var n = t.loose ? o[O] : o[T];
+									var n = t.loose ? o[I] : o[T];
 									return e.replace(n, (function(t, n, o, i, a, s) {
 										r("xRange", e, t, n, o, i, a, s);
 										var c = ae(o),
@@ -1328,7 +1325,7 @@ var ze = function(e, t) {
 		}, t.coerce = function(e) {
 			if (e instanceof J) return e;
 			if ("string" != typeof e) return null;
-			var t = e.match(o[I]);
+			var t = e.match(o[O]);
 			if (null == t) return null;
 			return F(t[1] + "." + (t[2] || "0") + "." + (t[3] || "0"))
 		}
@@ -1466,8 +1463,8 @@ var xt = function(e) {
 	},
 	jt = /^\s+|\s+$/g,
 	Tt = /^[-+]0x[0-9a-f]+$/i,
-	Ot = /^0b[01]+$/i,
-	It = /^0o[0-7]+$/i,
+	It = /^0b[01]+$/i,
+	Ot = /^0o[0-7]+$/i,
 	Ct = parseInt,
 	At = Object.prototype.toString;
 
@@ -1492,8 +1489,8 @@ var Pt = function(e) {
 							}
 							if ("string" != typeof e) return 0 === e ? e : +e;
 							e = e.replace(jt, "");
-							var r = Ot.test(e);
-							return r || It.test(e) ? Ct(e.slice(2), r ? 2 : 8) : Tt.test(e) ? NaN : +e
+							var r = It.test(e);
+							return r || Ot.test(e) ? Ct(e.slice(2), r ? 2 : 8) : Tt.test(e) ? NaN : +e
 						}(e)) === 1 / 0 || e === -1 / 0) {
 						return 17976931348623157e292 * (e < 0 ? -1 : 1)
 					}
@@ -1853,7 +1850,7 @@ function fr() {
 }
 const dr = {
 	createToken: function(e) {
-		const t = I(),
+		const t = O(),
 			r = {
 				uid: e._id
 			};
@@ -1869,7 +1866,7 @@ const dr = {
 		return Ne(e)
 	},
 	refreshToken: async function(e) {
-		const r = Ne(e)
+		const r = await dr.decryptToken(e)
 		if (!r) return {
 			code: 30204,
 			msg: "非法token"
@@ -1886,7 +1883,7 @@ const dr = {
 		};
 		let i = o.token;
 		var ti = i.indexOf(e)
-		const ed = await this.createToken({
+		const ed = await dr.createToken({
 			_id: r.uid
 		})
 		if ("string" == typeof i && (i = [i]), -1 === ti) {
@@ -1910,7 +1907,7 @@ const dr = {
 		}
 	},
 	checkToken: async function(e) {
-		const t = I();
+		const t = O();
 		try {
 			const r = cr(e, t.tokenSecret);
 			if (t.bindTokenToDevice && r.clientId !== fr()) return {
@@ -1950,7 +1947,7 @@ const dr = {
 		}
 	},
 	getExpiredToken(e) {
-		const t = I(),
+		const t = O(),
 			r = [];
 		return e.forEach(e => {
 			try {
@@ -2009,7 +2006,7 @@ async function mr(e) {
 	const {
 		my_invite_code: r
 	} = e;
-	if (!I().autoSetInviteCode && !r) return t = await j.add(e), {
+	if (!O().autoSetInviteCode && !r) return t = await j.add(e), {
 		code: 0,
 		msg: "注册成功",
 		result: t
@@ -2317,7 +2314,7 @@ var kr = function(e = {}) {
 function jr({
 	platform: e
 }) {
-	const t = I(e),
+	const t = O(e),
 		r = e || __ctx__.PLATFORM;
 	if (!t.oauth || !t.oauth.weixin) throw new Error(`请在公用模块uni-id的config.json或init方法中添加${r}平台微信登录配置项`);
 	["appid", "appsecret"].forEach(e => {
@@ -2326,13 +2323,13 @@ function jr({
 	return kr(t.oauth.weixin)
 }
 const Tr = uniCloud.database();
-const Or = uniCloud.database();
 const Ir = uniCloud.database();
+const Or = uniCloud.database();
 
 function Cr({
 	platform: e
 }) {
-	const t = I(e),
+	const t = O(e),
 		r = e || __ctx__.PLATFORM;
 	if (!t.oauth || !t.oauth.alipay) throw new Error(`请在公用模块uni-id的config.json或init方法中添加${r}平台支付宝登录配置项`);
 	["appid", "privateKey"].forEach(e => {
@@ -2426,7 +2423,7 @@ const Mr = uniCloud.database();
 const Dr = uniCloud.database().command;
 var Lr = {
 	init: function(e) {
-		O = e
+		I = e
 	},
 	register: async function(e) {
 		const t = [],
@@ -2535,7 +2532,7 @@ var Lr = {
 			{
 				passwordErrorLimit: c,
 				passwordErrorRetryTime: u
-			} = I();
+			} = O();
 		if (S("userInDB:", a), !(a && a.data && a.data.length > 0)) return {
 			code: 10101,
 			msg: "用户不存在"
@@ -2579,6 +2576,7 @@ var Lr = {
 					token: i,
 					uid: r._id,
 					username: e,
+					userInfo: r,
 					msg: "登录成功",
 					tokenExpired: a
 				}
@@ -2649,6 +2647,7 @@ var Lr = {
 					openid: n,
 					unionid: o,
 					sessionKey: i,
+					userInfo: e,
 					type: "login",
 					mobileConfirmed: 1 === a.mobile_confirmed,
 					emailConfirmed: 1 === a.email_confirmed
@@ -2717,7 +2716,7 @@ var Lr = {
 			code: 60301,
 			msg: "获取openid失败"
 		};
-		const a = Or.command,
+		const a = Ir.command,
 			s = [{
 				wx_openid: {
 					[n]: o
@@ -2750,7 +2749,7 @@ var Lr = {
 	},
 	unbindWeixin: async function(e) {
 		try {
-			const t = Ir.command,
+			const t = Or.command,
 				r = await j.doc(e).update({
 					wx_openid: t.remove(),
 					wx_unionid: t.remove()
@@ -2812,6 +2811,7 @@ var Lr = {
 					username: e.username,
 					openid: n,
 					type: "login",
+					userInfo: e,
 					tokenExpired: a,
 					mobileConfirmed: 1 === r.mobile_confirmed,
 					emailConfirmed: 1 === r.email_confirmed
@@ -3067,7 +3067,6 @@ var Lr = {
 			}
 		}
 	},
-	createToken: dr.createToken,
 	decryptToken: dr.decryptToken,
 	refreshToken: dr.refreshToken,
 	checkToken: dr.checkToken,
@@ -3136,7 +3135,7 @@ var Lr = {
 		if (!e) throw new Error("手机号码不可为空");
 		if (!t) throw new Error("验证码不可为空");
 		if (!r) throw new Error("验证码类型不可为空");
-		const n = I();
+		const n = O();
 		let o = n && n.service && n.service.sms;
 		if (!o) throw new Error("请在config.json或init方法中配置service.sms下短信相关参数");
 		o = Object.assign({
@@ -3199,7 +3198,7 @@ var Lr = {
 		myInviteCode: o,
 		type: i
 	}) {
-		const a = I();
+		const a = O();
 		if (a.forceInviteCode && !i) throw new Error("[loginBySms]强制使用邀请码注册时，需指明type为register还是login");
 		const s = await Nr({
 			mobile: e,
@@ -3294,6 +3293,7 @@ var Lr = {
 					uid: t._id,
 					username: t.username,
 					mobile: e,
+					userInfo: t,
 					type: "login",
 					msg: "登录成功",
 					tokenExpired: i
@@ -3391,6 +3391,7 @@ var Lr = {
 					uid: t._id,
 					username: t.username,
 					email: e,
+					userInfo: t,
 					type: "login",
 					tokenExpired: i
 				}
@@ -3514,14 +3515,14 @@ var Lr = {
 		if (t && t.length)
 			for (let e = 0; e < t.length; e++) r[t[e]] = !0;
 		try {
-			const t = await j.doc(e).field(r).get();
-			return 0 === t.data.length ? {
+			let n;
+			return n = t && t.length ? await j.doc(e).field(r).get() : await j.doc(e).get(), 0 === n.data.length ? {
 				code: 80301,
 				msg: "未查询到用户信息"
 			} : {
 				code: 0,
 				msg: "获取用户信息成功",
-				userInfo: t.data[0]
+				userInfo: n.data[0]
 			}
 		} catch (e) {
 			return {

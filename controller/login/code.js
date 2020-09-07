@@ -20,7 +20,7 @@ exports.main = async (event, context) => {
 				if (!res) {
 					return {
 						code: 500,
-						msg: 'codeId不存在'
+						msg: 'codeId不存在或已取消操作'
 					}
 				}
 				if (res.uid) {
@@ -36,6 +36,7 @@ exports.main = async (event, context) => {
 					gdata = {
 						codeType: data.codeType,
 						uid: '',
+						IP: context.CLIENTIP,
 						createTime,
 						dueDate: createTime + 600000
 					},
@@ -67,6 +68,13 @@ exports.main = async (event, context) => {
 						codeId: res.id
 					}
 				}
+			}
+			break;
+		case 'delete':
+			await collection.doc(data.codeId).remove();
+			return {
+				code: 0,
+				msg: 'success'
 			}
 			break;
 		default:
