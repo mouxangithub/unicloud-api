@@ -1,6 +1,6 @@
 {
 	"name": "unicloud-api",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"description": "统一云函数",
 	"main": "index.js",
 	"bugs": {
